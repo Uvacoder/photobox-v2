@@ -1,3 +1,90 @@
+/// <reference path="./typings/cropper.d.ts" />
+/** @jsx element */
+import  "materialize-css/dist/css/materialize.min.css"
+import {element, createApp, VirtualElement} from "deku";
+import {h, BaseProps} from "tsx-dom";
+import Cropper from "cropperjs";
+import smartcrop from "smartcrop";
+import {ImageTile} from "./components/image-tile/ImageTile";
+import {init, update, view} from "./components/image-tile/app";
+import { createStore } from 'redux';
+// @ts-ignore
+import setupDomToVdom from 'dom-to-vdom';
+interface ImageButtonProps extends BaseProps {
+    src: string;
+}
+
+export function ImageButton({src, children}: ImageButtonProps) {
+    return <button><img src={src}/> {children}</button>;
+}
+
+let src = '';
+let imgb = <ImageButton src={src}>Will Robinson</ImageButton>;
+const onClick = (...args: any) => {
+    console.log(args)
+}
+const tile = new ImageTile('1.jpg', onClick);
+//document.body.appendChild(tile.getElement());
+setTimeout(() => {
+    tile.setSrc('1 gBQxShAkxBp_YPb14CN0Nw.jpeg');
+
+}, 2000);
+
+//let render = createApp(document.body)
+
+/**
+ * Update the UI with the latest state.
+ */
+
+// Dispatch an action when the button is clicked
+let log = (dispatch:any) => (event:any)  => {
+    dispatch({
+        type: 'CLICKED'
+    })
+}
+// Define a state-less component
+let MyButton = {
+    render: ({ props, children, dispatch }: any) => {
+        return <button onClick={log(dispatch)}>{children}</button>
+    }
+}
+
+
+function counterReducer(state = { value: 0 }, action:any) {
+    switch (action.type) {
+        case 'counter/incremented':
+            return { value: state.value + 1 }
+        case 'counter/decremented':
+            return { value: state.value - 1 }
+        default:
+            return state
+    }
+}
+
+let store = createStore(counterReducer);
+function main (state: any) {
+    // @ts-ignore
+    let vnode = view(state, action  => {
+        let nextState = update(state, action )
+        main(nextState)
+    });
+
+    const domToVdom = setupDomToVdom({element});
+    const vdom = domToVdom(vnode);
+   // render(vdom)
+}
+/**
+ * Initial render
+ */
+
+//main(init());
+//main({count: 2});
+let v = view(init(), (d: any) => {
+    console.log(d);
+});
+//document.body.appendChild(v);
+
+
 const images = [
     {
         "url": "https://images.unsplash.com/photo-1526512340740-9217d0159da9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dmVydGljYWx8ZW58MHx8MHx8&w=1000&q=80"
@@ -1264,35 +1351,31 @@ const images = [
     }
 ];
 const container = document.getElementById('root');
-const zoomIn = document.getElementById('zoomIn');
-const zoomOut = document.getElementById('zoomOut');
-const formats = document.getElementById('formats');
+const zoomIn = document.getElementById('zoomIn') || new HTMLElement();
+const zoomOut = document.getElementById('zoomOut') || new HTMLElement();
+const formats = document.getElementById('formats') || new HTMLElement();
 const f1 = document.getElementById('f1');
 const f2 = document.getElementById('f2');
 const f3 = document.getElementById('f3');
 const f4 = document.getElementById('f4');
 const f5 = document.getElementById('f5');
 
-let croppers = [];
+let croppers: any[] = [];
 let previews = document.querySelectorAll('.preview');
 
-function each(arr, callback) {
-    var length = arr.length;
-    var i;
-
-    for (i = 0; i < length; i++) {
-        callback.call(arr, arr[i], i, arr);
-    }
-
-    return arr;
-}
 
 let images2 = [
     {
-        url:  './1.jpg'
-    }
+        url: './1.jpg'
+    },
+    {
+        url: './1 gBQxShAkxBp_YPb14CN0Nw.jpeg'
+    },
+    {
+        url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
+    },
 ]
-images2.slice(0,10).forEach(image => {
+images2.slice(0, 0).forEach(image => {
     let imgContainer = document.createElement('div');
     let preview = document.createElement('div');
     imgContainer.className = 'image-container';
@@ -1315,20 +1398,20 @@ images2.slice(0,10).forEach(image => {
         },
         ready() {
             console.log(this);
-            smartcrop.crop(this, { width: 100, height: 100 }).then(function(result) {
+            smartcrop.crop(this as CanvasImageSource, {width: 100, height: 100}).then(function (result) {
                 console.log(result);
                 cropper.setData(result.topCrop)
-             /*   cropper.setData({
-                    x: 0, y: 0, width: 500, height: 500
-                })*/
+                /*   cropper.setData({
+                       x: 0, y: 0, width: 500, height: 500
+                   })*/
             });
         }
     });
 
+    const imageTile = new ImageTile(image.url, onClick)
 
-    croppers.push(cropper);
-    container.appendChild(imgContainer);
-
+    container?.appendChild(imageTile.getElement());
+    croppers.push(imageTile);
 
 });
 
@@ -1357,13 +1440,15 @@ zoomOut.onclick = function () {
     });
 }
 console.log(formats);
+// @ts-ignore
 for (let item of formats.children) {
-    item.onclick = function () {
-        const aspect = this.textContent.split('x');
+    (item as HTMLElement).onclick = function () {
+        console.log(this);
+      /*  const aspect = this.textContent.split('x');
         croppers.forEach(cropper => {
             console.log(cropper);
             cropper.setAspectRatio(aspect[0] / aspect[1]);
-        });
+        });*/
     };
 }
 
@@ -1371,3 +1456,8 @@ setTimeout(() => {
 
 
 }, 5000);
+
+const myImg = <img src="my/path.png" onClick={() => console.log("click")}/> as HTMLImageElement;
+
+// Use it like any element created with document.createElement(...);
+//document.body.appendChild(myImg);
