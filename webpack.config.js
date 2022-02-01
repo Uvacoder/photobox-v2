@@ -2,7 +2,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require("path");
 
 module.exports = {
-    entry: "./src/index.tsx",
+    entry: "./src/Application.tsx",
     devtool: "source-map",
     mode: "development",
     output: {
@@ -12,25 +12,47 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: {
                     loader: "babel-loader"
                 }
             },
             {
-                test: /\.(ts|tsx)?$/,
+                test: /\.(ts)?$/,
                 loader: "ts-loader",
+                exclude: /node_modules/
+            },
+            {
+                test: /\.(tsx)?$/,
+                //loader: "ts-loader",
+                use:[
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['solid'],
+                        },
+                    },
+                    {
+                        loader: "ts-loader"
+                    }
+                ],
                 exclude: /node_modules/
             },
             {
                 test: /\.css$/i,
                 use: ["style-loader", "css-loader"],
             },
+            {
+                test: /\.jsx/,
+                use: ['solid-hot-loader'],
+                // If and only if all your components are in `path/to/components` directory
+            },
+
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js', '.json', ".tsx"]
+        extensions: ['.ts', '.js', '.jsx', '.json', ".tsx"]
     },
     devServer: {
         port: 3000,

@@ -1,20 +1,43 @@
-export class BaseView<T> {
-    element: T;
+import {render} from "solid-js/web";
+import Counter from "./components/image-tile/view";
+import {JSX} from "solid-js";
 
-    constructor(element: T) {
-       // super();
-        this.element = element;
-    }
+export class BaseView<T extends JSX.Element> {
+    private element: T | null = null;
+    private container: HTMLElement;
 
-    init(element: HTMLElement) {
+    constructor(container?: HTMLElement) {
+
+        if (container) {
+            this.container = container;
+        } else {
+            this.container = document.createElement("div");
+        }
+        // super();
         //this.element = element;
+        //solidRender(() => this.element as any, container);
     }
 
-    refresh() {
+    init(element: T) {
+        this.element = element;
+        if (this.container) {
+            render(() => this.element as any, this.container || document.body);
+        }
+    }
+
+    createElement(tagName: string) {
 
     }
 
-    public getElement(){
+    getContainer(): HTMLElement {
+        return this.container;
+    }
+
+    public getJSXElement(): JSX.Element {
         return this.element;
+    }
+
+    public getPlainDomElement(): HTMLElement {
+        return (this.element as HTMLElement);
     }
 }

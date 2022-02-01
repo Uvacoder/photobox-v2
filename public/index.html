@@ -5,12 +5,19 @@
     <title>Title</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.css">
     <style>
+        .viewport{
+            text-align: center;
+        }
+        .image-tile{
+            display: inline-block;
+            margin: 10px;
+        }
         .image-container{
-            width: 300px;
-            height: 300px;
-            border-bottom: 2px solid #0ff535;
-            margin-bottom: 2px;
+            width: 200px;
+            height: 200px;
             position: relative;
+            overflow: hidden;
+            /*transition: width .1s, height .1s;*/
         }
         .image-container .preloader-wrapper{
             position: absolute;
@@ -20,12 +27,19 @@
             bottom: 0;
             margin: auto;
         }
+        .cropper-bg{
+            background: none !important;
+        }
+        .cropper-modal{
+            opacity: 0;
+        }
         .preview{
             height: 150px;
         }
     </style>
 </head>
 <body>
+<div id="toolbar"></div>
 <button id="zoomIn">+</button>
 <button id="zoomOut">-</button>
 <div id="formats">
@@ -36,6 +50,7 @@
     <button id="f5">152x216</button>
 </div>
 <div id="root"></div>
+<div id="pagination"></div>
 </body>
 
 </html>

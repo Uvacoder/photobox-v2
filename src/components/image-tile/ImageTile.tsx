@@ -1,62 +1,77 @@
 /// <reference path="../../BaseView.ts" />
 import {h, BaseProps} from "tsx-dom";
 import {BaseView} from "../../BaseView";
-import Counter from "./tile";
 import Cropper from "cropperjs";
 import smartcrop from "smartcrop";
-import { render as solidRender } from 'solid-js/web';
+import {render as solidRender} from 'solid-js/web';
+import view from "./view";
+import {CropResult} from "smartcrop/index";
+import Data = Cropper.Data;
+import {getPalette, fitGradient} from 'dont-crop';
 
-
-export class ImageTile extends BaseView<HTMLElement> {
+export class ImageTile extends BaseView<any> {
     private src: string = "";
-    private onClick: (...args: any) => void;
-    private html = <div class={"image-container"}><img /></div>;
+    //private onClick: (...args: any) => void;
+    private image: HTMLImageElement;
     private cropper: Cropper | null = null;
+    private cropData: Cropper.SetDataOptions | null = null;
 
 
-    constructor(src: string, onClick: (...args: any) => void) {
-        super(Counter());
+    constructor(src: string, container: HTMLElement) {
+        super(container);
+        this.init(view.template({src: src, onClick: this.onClick}));
         this.src = src;
-        this.onClick = onClick;
-        this.getImage().onload = () => {
+        this.image = this.getImage();
+        this.image.onload = () => {
             this.initCropper();
-            console.log('updateState');
-
         }
-        // @ts-ignore
-        solidRender(() => <Counter />, document.getElementById("zoomIn"));
-
     }
 
-    private initCropper(){
-        const img = this.getImage();
-        if(!img){
+    public setAspectRatio(aspect: number) {
+        this.cropper?.setAspectRatio(aspect);
+        this.update();
+    }
+
+    private onClick() {
+        console.log('click');
+    }
+
+    private initCropper() {
+        const that = this;
+        if (!this.image) {
             return;
         }
-        const cropper = new Cropper(img, {
+        view.updateState({loaded: false});
+        const cropper = new Cropper(this.image, {
             aspectRatio: 16 / 16,
             viewMode: 2,
             scalable: false,
             checkCrossOrigin: false,
             autoCropArea: 1,
             crop(event) {
-
+                console.log(event.detail);
+                that.cropData = event.detail;
             },
             ready() {
                 smartcrop.crop(this as CanvasImageSource, {width: 100, height: 100}).then(function (result) {
-                    console.log(result);
                     cropper.setData(result.topCrop)
                     /*   cropper.setData({
                            x: 0, y: 0, width: 500, height: 500
                        })*/
                 });
+                view.updateState({loaded: true});
+                console.log(fitGradient(this as CanvasImageSource));
+                that.getContainer().style.background = fitGradient(that.getImage());
+                console.log(that.getImage());
             }
         });
         this.cropper = cropper;
     }
 
-    private static createElement(src: string, onClick: (...args: any) => void) {
-        return <img src={src} onClick={() => onClick("click", "click2")}/> as HTMLImageElement;
+    public update() {
+        // @ts-ignore
+        this.cropper?.resize();
+        this.cropper?.setData(this.cropData as Cropper.SetDataOptions);
     }
 
     public setSrc(src: string) {
@@ -69,8 +84,8 @@ export class ImageTile extends BaseView<HTMLElement> {
         this.getImage().src = src;
     }
 
-    public getImage(): HTMLImageElement{
-        return this.getElement().children[0] as HTMLImageElement
+    public getImage(): any {
+        return this.getPlainDomElement().children[0];
     }
 
 }
