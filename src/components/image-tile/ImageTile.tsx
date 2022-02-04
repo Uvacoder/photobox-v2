@@ -160,6 +160,9 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
         // @ts-ignore
         this.cropper?.resize();
+        setTimeout(() => {
+
+        }, 0)
     }
 
     public setZoom(scale: number) {
@@ -209,9 +212,14 @@ export class ImageTile extends BaseView<IProps, IState> {
         });
     }
 
-    public detectColorPalette() {
-        const innerContainer = this.getPlainDomElement();
-        innerContainer.style.background = fitGradient(this.getImage());
+    public detectColorPalette(isTrue: boolean) {
+        if(isTrue){
+            const innerContainer = this.getPlainDomElement();
+            innerContainer.style.background = fitGradient(this.getImage());
+        }else{
+            this.clearColorPalette();
+        }
+
     }
 
     public clearColorPalette(){

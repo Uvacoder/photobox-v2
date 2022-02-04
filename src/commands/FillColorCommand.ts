@@ -8,8 +8,8 @@ export class FillColorCommand implements Command {
         this.app = app;
     }
 
-    execute(): void {
-        this.app.getViewport().fillColor();
+    execute(params?: boolean): void {
+        this.app.getViewport().fillColor(params || false);
     }
 
 

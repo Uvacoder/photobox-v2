@@ -11,7 +11,7 @@ export abstract class BaseView<P = Props, S = State> {
 
     //private viewState: S = {} as S;
 
-    protected constructor(container?: HTMLElement) {
+    protected constructor(container?: HTMLElement | null) {
 
         if (container) {
             this.container = container;

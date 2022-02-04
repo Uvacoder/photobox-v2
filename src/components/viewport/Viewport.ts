@@ -11,12 +11,12 @@ export default class Viewport extends BaseView<any, any> {
     private zoomStep: number = .05;
     public static initialSize: number = 200;
 
-    constructor(container?: HTMLElement) {
+    constructor(container?: HTMLElement | null) {
         super(container);
     }
 
     onMountView(): void {
-        console.log('mounted');
+        console.log('mounted viewport');
     }
 
     public addImage(url: string, state?: ImageState) {
@@ -71,9 +71,9 @@ export default class Viewport extends BaseView<any, any> {
         this.updateTilesZoom();
     }
 
-    public fillColor(){
+    public fillColor(fill: boolean){
         this.images.forEach(image => {
-            image.detectColorPalette();
+            image.detectColorPalette(fill);
         });
     }
 
@@ -87,24 +87,11 @@ export default class Viewport extends BaseView<any, any> {
     public renderImages(start: number, finish: number) {
         const container = this.getContainer();
         container.innerHTML = "";
-        let images2 = [
-            {
-                url: './1.jpg'
-            },
-            {
-                url: './1 gBQxShAkxBp_YPb14CN0Nw.jpeg'
-            },
-            {
-                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
-            },
-        ]
-        for (let i = 1; i <= 33; i++) {
-            //this.addImage(`./img/${i}.jpg`)
-        }
 
-        this.addImages();
-        this.addImages();
-        this.addImages();
+
+        //this.addImages();
+        //this.addImages();
+       // this.addImages();
 
 
     }
@@ -477,7 +464,41 @@ export default class Viewport extends BaseView<any, any> {
         ];
 
         for (let i = 0; i <= state.length - 1; i++) {
-            this.addImage(state[i].url, state[i] as ImageState);
+            //this.addImage(state[i].url, state[i] as ImageState);
+        }
+
+        let images2 = [
+            {
+                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
+            },
+            {
+                url: './1.jpg'
+            },
+            {
+                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
+            },
+        ]
+        for (let i = 0; i <= 2; i++) {
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            this.addImage(`.${images2[i].url}`)
+            //this.addImage(`./img/${i}.jpg`)
         }
     }
 }

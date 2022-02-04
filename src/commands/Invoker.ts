@@ -1,4 +1,5 @@
 import Command from "../interface/Command";
+import {Action} from "../interface/Action";
 
 export default class Invoker{
     // The Invoker Class
@@ -11,17 +12,18 @@ export default class Invoker{
     register(commandName: string, command: Command) {
         // Register commands in the Invoker
         if(this.commands[commandName]){
-            console.log(`Command '${commandName}' has been registered earlier. This action will replace the old one.`);
+            console.warn(`Command '${commandName}' has been registered earlier. This action will replace the old one.`);
         }
         this.commands[commandName] = command
     }
 
-    execute(commandName: string) {
+    execute(action: Action) {
         // Execute any registered commands
-        if (commandName in this.commands) {
-            this.commands[commandName].execute()
+        if (action.type in this.commands) {
+            console.debug(`Executing command: ${action.type} with payload: ${action.payload}`);
+            this.commands[action.type].execute(action.payload)
         } else {
-            console.log(`Command [${commandName}] not recognised`)
+            console.warn(`Command [${action.type}] not recognised`)
         }
     }
 }

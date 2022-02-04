@@ -10,12 +10,11 @@ export default class Toolbar extends BaseView<any> {
     private zoomIn: Command | undefined;
     private zoomOut: Command | undefined;
 
-    constructor(container?: HTMLElement) {
+    constructor(container?: HTMLElement | null) {
         super(container);
         const props = {
             click: (action: Action) => {
-                console.log(action);
-                Application.INVOKER.execute(action.type);
+                Application.INVOKER.execute(action);
 
             }
         };
