@@ -1,17 +1,19 @@
-import ICommand from "../interface/ICommand";
+import Command from "../interface/Command";
 import Application from "../Application";
 
-export default class ChangeAspectCommand implements ICommand {
+export default class ChangeAspectCommand implements Command {
     private app: Application;
-    private aspect: number;
+    private width: number;
+    private height: number;
 
-    constructor(app: Application, aspect: number) {
+    constructor(app: Application, width: number, height: number) {
         this.app = app;
-        this.aspect = aspect;
+        this.width = width;
+        this.height = height;
     }
 
     execute(): void {
-        this.app.getViewPort().setAspectRatio(this.aspect);
+        this.app.getViewport().setAspectRatio(this.width, this.height);
     }
 
 

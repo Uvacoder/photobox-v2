@@ -1,12 +1,17 @@
 import {render} from "solid-js/web";
-import Counter from "./components/image-tile/view";
+import Counter, {IProps} from "./components/image-tile/view";
 import {JSX} from "solid-js";
+import Props from "./interface/Props";
+import State from "./interface/State";
+import {IState} from "./components/pagination/view";
 
-export class BaseView<T extends JSX.Element> {
-    private element: T | null = null;
+export abstract class BaseView<P = Props, S = State> {
+    private element: JSX.Element | null = null;
     private container: HTMLElement;
 
-    constructor(container?: HTMLElement) {
+    //private viewState: S = {} as S;
+
+    protected constructor(container?: HTMLElement) {
 
         if (container) {
             this.container = container;
@@ -18,18 +23,43 @@ export class BaseView<T extends JSX.Element> {
         //solidRender(() => this.element as any, container);
     }
 
-    init(element: T) {
-        this.element = element;
-        if (this.container) {
-            render(() => this.element as any, this.container || document.body);
+    mountView(element: (props: P) => JSX.Element, props: P): void {
+        //console.log(element);
+        props = {
+            ...props,
+            onMount: this.onMountView.bind(this)
         }
+        // return new Promise<void>((resolve, reject) => {
+        this.element = element(props);
+        if (this.container) {
+            render(() => {
+                // resolve();
+                // this.mounted({});
+                return this.element as any;
+            }, this.container || document.body);
+        }
+        //});
     }
+
+    getState(): void {
+        //return this.viewState;
+    }
+
+    abstract onMountView(state: S): void;
 
     createElement(tagName: string) {
 
     }
 
-    getContainer(): HTMLElement {
+    public addClass(element: HTMLElement, className: string) {
+        element.classList.add(className);
+    }
+
+    public removeClass(element: HTMLElement, className: string) {
+        element.classList.remove(className);
+    }
+
+    public getContainer(): HTMLElement {
         return this.container;
     }
 

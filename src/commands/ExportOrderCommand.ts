@@ -1,7 +1,8 @@
 import Command from "../interface/Command";
 import Application from "../Application";
+import {ImagePrintMode} from "../constants/ImagePrintMode";
 
-export default class TileZoomInCommand implements Command {
+export class ExportOrderCommand implements Command {
     private app: Application;
 
     constructor(app: Application) {
@@ -9,7 +10,7 @@ export default class TileZoomInCommand implements Command {
     }
 
     execute(): void {
-        this.app.getViewport().zoomOut();
+        this.app.getViewport().serializeState();
     }
 
 

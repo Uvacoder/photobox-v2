@@ -1,17 +1,17 @@
-import ICommand from "../interface/ICommand";
+import Command from "../interface/Command";
 
 export default class Invoker{
     // The Invoker Class
-    private commands: { [id: string]: ICommand }
+    private commands: { [id: string]: Command }
 
     constructor() {
         this.commands = {}
     }
 
-    register(commandName: string, command: ICommand) {
+    register(commandName: string, command: Command) {
         // Register commands in the Invoker
         if(this.commands[commandName]){
-            console.log(`Command '${commandName}' has been registered earlier. This action will replace old one.`);
+            console.log(`Command '${commandName}' has been registered earlier. This action will replace the old one.`);
         }
         this.commands[commandName] = command
     }

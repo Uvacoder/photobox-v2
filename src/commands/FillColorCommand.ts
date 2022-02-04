@@ -1,7 +1,7 @@
 import Command from "../interface/Command";
 import Application from "../Application";
 
-export default class TileZoomInCommand implements Command {
+export class FillColorCommand implements Command {
     private app: Application;
 
     constructor(app: Application) {
@@ -9,7 +9,7 @@ export default class TileZoomInCommand implements Command {
     }
 
     execute(): void {
-        this.app.getViewport().zoomOut();
+        this.app.getViewport().fillColor();
     }
 
 

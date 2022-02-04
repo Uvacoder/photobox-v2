@@ -1,45 +1,36 @@
 import {BaseView} from "../../BaseView";
 import view from "./view";
 import {ImageTile} from "../image-tile/ImageTile";
-import ICommand from "../../interface/ICommand";
+import Command from "../../interface/Command";
 import Application from "../../Application";
+import {IState} from "../image-tile/view";
+import {Action} from "../../interface/Action";
 
 export default class Toolbar extends BaseView<any> {
-    private zoomIn: ICommand | undefined;
-    private zoomOut: ICommand | undefined;
+    private zoomIn: Command | undefined;
+    private zoomOut: Command | undefined;
 
     constructor(container?: HTMLElement) {
         super(container);
-        const jsx = view.template({
-            click: (action) => {
+        const props = {
+            click: (action: Action) => {
                 console.log(action);
-                switch (action.type){
-                    case 'zoomIn':
-                        Application.INVOKER.execute('1');
-                        break;
-                    case 'zoomOut':
-                        Application.INVOKER.execute('2');
-                        break;
-                    case '9x13':
-                        Application.INVOKER.execute('9x13');
-                        break;
-                    case '9x9':
-                        Application.INVOKER.execute('9x9');
-                        break;
-                    case '13x18':
-                        Application.INVOKER.execute('13x18');
-                        break;
-                }
+                Application.INVOKER.execute(action.type);
 
             }
-        });
-        this.init(jsx);
+        };
+        this.mountView(view.template, props);
         view.subscribe(() => {
             console.log('got event');
         })
     }
 
-    public setOnStart(command: ICommand): void {
+    onMountView(state: IState): void {
+        console.log('mounted');
+
+    }
+
+    public setOnStart(command: Command): void {
         this.zoomIn = command;
     }
 }

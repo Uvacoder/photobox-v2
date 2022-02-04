@@ -1,7 +1,7 @@
-import ICommand from "../interface/ICommand";
+import Command from "../interface/Command";
 import Application from "../Application";
 
-export default class TileZoomInCommand implements ICommand {
+export default class TileZoomInCommand implements Command {
     private app: Application;
 
     constructor(app: Application) {
@@ -9,7 +9,7 @@ export default class TileZoomInCommand implements ICommand {
     }
 
     execute(): void {
-        this.app.getViewPort().zoomIn();
+        this.app.getViewport().zoomIn();
     }
 
 
