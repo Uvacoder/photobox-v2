@@ -20,7 +20,11 @@ export default class Invoker{
     execute(action: Action) {
         // Execute any registered commands
         if (action.type in this.commands) {
-            console.debug(`Executing command: ${action.type} with payload: ${action.payload}`);
+            if(action.payload){
+                console.debug(`Executing command: '${action.type}' with payload: ${action.payload}`);
+            }else{
+                console.debug(`Executing command: '${action.type}' without payload`);
+            }
             this.commands[action.type].execute(action.payload)
         } else {
             console.warn(`Command [${action.type}] not recognised`)
