@@ -4,15 +4,13 @@ import {ImagePrintMode} from "../constants/ImagePrintMode";
 
 export default class ImagePrintModeCommand implements Command {
     private app: Application;
-    private mode: ImagePrintMode;
 
-    constructor(app: Application, mode: ImagePrintMode) {
+    constructor(app: Application) {
         this.app = app;
-        this.mode = mode;
     }
 
-    execute(): void {
-        this.app.getViewport().setMode(this.mode);
+    execute(mode: ImagePrintMode): void {
+        this.app.getViewport().setMode(mode);
     }
 
 

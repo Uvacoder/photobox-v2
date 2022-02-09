@@ -9,15 +9,17 @@ import Viewport from "../viewport/Viewport";
 import {ImageState} from "../../interface/ImageState";
 import CropEndEvent = Cropper.CropEndEvent;
 import SetDataOptions = Cropper.SetDataOptions;
+import {FrameType} from "../../constants/FrameType";
 
 export class ImageTile extends BaseView<IProps, IState> {
     private src: string = "";
-    private image: HTMLImageElement;
+    private image: HTMLImageElement | null = null;
     private cropper: Cropper | null = null;
     // private cropData: Cropper.Data | null = null;
     //private aspectRatio: number = 15 / 15;
     private viewState: IState | null = null;
     //private imagePrintMode: ImagePrintMode = ImagePrintMode.CROP;
+    private isMounted: boolean = false;
     private state: ImageState = {
         url: "",
         size: {
@@ -32,20 +34,32 @@ export class ImageTile extends BaseView<IProps, IState> {
 
     constructor(src: string, container?: HTMLElement, serializedState?: ImageState) {
         super(container);
-        this.mountView(view, {src});
+        // this.mountView(view, {src});
         this.src = src;
-        this.image = this.getImage();
+
         this.state.url = src;
         if (serializedState) {
             this.state = serializedState;
         }
-        this.image.onload = () => {
-            this.setMode(this.state.imagePrintMode)
+
+    }
+
+    render() {
+        if (!this.isMounted) {
+            this.mountView(view, {src: this.src});
         }
+        //this.updateTile();
+        //this.viewState?.setLoaded(false);
     }
 
     onMountView(state: IState) {
         this.viewState = state;
+        this.isMounted = true;
+        this.image = this.getImage();
+        // @ts-ignore
+        this.image.onload = () => {
+            this.setMode(this.state.imagePrintMode)
+        }
     }
 
     /**
@@ -101,7 +115,7 @@ export class ImageTile extends BaseView<IProps, IState> {
                     console.log(cropper.getData());
                 },
                 ready() {
-                    //that.detectBestFrame.call(that, this as CanvasImageSource, cropper)
+                    that.detectBestFrame.call(that, this as CanvasImageSource, cropper)
                     that.viewState?.setLoaded(true);
                     if (that.state.zoom)
                         cropper.zoomTo(that.state.zoom || 0);
@@ -180,7 +194,6 @@ export class ImageTile extends BaseView<IProps, IState> {
     }
 
 
-
     public serializeState(): ImageState {
         if (this.state.imagePrintMode == ImagePrintMode.CROP) {
             this.state.cropData = this.cropper?.getData(true) || null;
@@ -203,8 +216,18 @@ export class ImageTile extends BaseView<IProps, IState> {
         return this.getPlainDomElement().children[0];
     }
 
-    private detectBestFrame(image?: CanvasImageSource, cropper?: Cropper): void {
-        smartcrop.crop(this.getImage(), {width: 10, height: 15}).then((result) => {
+    public detectBestFrame(image?: CanvasImageSource, cropper?: Cropper): void {
+        if (!this.isMounted) {
+            return;
+        }
+        let width = this.state.size.h;
+        let height = this.state.size.w;
+        if (this.getImage().naturalWidth / this.getImage().naturalHeight < 1) {
+            // width = this.state.size.h;
+            //height = this.state.size.w;
+        }
+        const size = Math.max(this.getImage().naturalWidth, this.getImage().naturalHeight);
+        smartcrop.crop(this.getImage(), {width: size, height: size}).then((result) => {
             this.cropper?.setData(result.topCrop)
             // this.detectColorPalette();
             this.state.cropData = result.topCrop as Cropper.Data;
@@ -212,25 +235,102 @@ export class ImageTile extends BaseView<IProps, IState> {
         });
     }
 
+    public resetCropper() {
+        this.cropper?.reset();
+    }
+
+    public setFrameType(type: FrameType) {
+        const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
+        if (!frameElement) {
+            return;
+        }
+        switch (type) {
+            case FrameType.POLAROID:
+                frameElement.style.border = "5px solid #fff"
+                frameElement.style.borderBottomWidth = "15px";
+                break;
+            case FrameType.REGULAR:
+                frameElement.style.border = "0px solid #fff"
+                break;
+            default:
+                frameElement.style.border = "none"
+                break;
+        }
+    }
+
+    public setBorderWeight(thickness: number) {
+        if (this.state.border == undefined) {
+            this.state.border = {
+                thickness: 0,
+                color: 'white'
+            }
+        }
+        this.state.border!.thickness = thickness;
+        if (this.state.imagePrintMode === ImagePrintMode.CROP) {
+
+            const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
+            if (frameElement) {
+                frameElement.style.borderWidth = `${thickness}px`;
+            }
+        } else {
+            const tile = this.getPlainDomElement();
+            tile.style.borderStyle = 'solid';
+            tile.style.borderColor = this.state.border.color;
+            tile.style.borderWidth = `${thickness}px`;
+        }
+    }
+
+    public setBorderColor(color: string) {
+        if (this.state.border == undefined) {
+            this.state.border = {
+                thickness: 0,
+                color: 'white'
+            }
+        }
+        this.state.border!.color = color;
+
+        if (this.state.imagePrintMode === ImagePrintMode.CROP) {
+            const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
+            if (frameElement) {
+
+                frameElement.style.borderColor = color;
+            }
+        } else {
+            const tile = this.getPlainDomElement();
+            tile.style.borderStyle = 'solid';
+            tile.style.borderWidth = `${this.state.border.thickness}px`;
+            tile.style.borderColor = color;
+        }
+    }
+
     public detectColorPalette(isTrue: boolean) {
-        if(isTrue){
+        if (!this.isMounted) {
+            return;
+        }
+        if (isTrue) {
             const innerContainer = this.getPlainDomElement();
             innerContainer.style.background = fitGradient(this.getImage());
-        }else{
+        } else {
             this.clearColorPalette();
         }
 
     }
 
-    public clearColorPalette(){
+    public clearColorPalette() {
         const innerContainer = this.getPlainDomElement();
         innerContainer.style.background = "white";
     }
 
     public getAspectRatio(): number {
+        const imageWidth = this.getImage().naturalWidth;
+        const imageHeight = this.getImage().naturalHeight;
+
+        if (imageWidth / imageHeight > 1) {
+            return this.state.size.h / this.state.size.w;
+        }
+
         return this.state.size.w / this.state.size.h;
     }
-
 
 
 }

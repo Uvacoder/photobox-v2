@@ -19,9 +19,6 @@ export default class Toolbar extends BaseView<any> {
             }
         };
         this.mountView(view.template, props);
-        view.subscribe(() => {
-            console.log('got event');
-        })
     }
 
     onMountView(state: IState): void {

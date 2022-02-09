@@ -2,6 +2,9 @@ import {BaseView} from "../../BaseView";
 import {ImageTile} from "../image-tile/ImageTile";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {ImageState} from "../../interface/ImageState";
+import {SimplePagination} from 'ts-pagination';
+import pagination from '../../utils/paginate';
+import {FrameType} from "../../constants/FrameType";
 
 export default class Viewport extends BaseView<any, any> {
     private images: ImageTile[] = [];
@@ -10,9 +13,20 @@ export default class Viewport extends BaseView<any, any> {
     private minZoomFactor: number = 1;
     private zoomStep: number = .05;
     public static initialSize: number = 200;
+    private currentPage: number = 1;
+    private itemsPerPage: number = 5;
+    private startIndex: number = 0;
+    private endIndex: number = 10;
 
     constructor(container?: HTMLElement | null) {
         super(container);
+        const pagerItemSize = 10; // pager item size per page
+        const currentIndex = 0; // currentIndex pagination item
+        const dataTotal = 151; // total data count
+        const dataSize = 10; // data items per page
+
+        const simpleP = new SimplePagination(pagerItemSize, currentIndex, dataTotal, dataSize);
+        //console.log(simpleP);
     }
 
     onMountView(): void {
@@ -24,7 +38,7 @@ export default class Viewport extends BaseView<any, any> {
         let imgContainer = document.createElement('div');
         imgContainer.className = 'image-tile';
 
-        container.insertBefore(imgContainer, container.firstChild);
+        //container.insertBefore(imgContainer, container.firstChild);
         const imageTile = new ImageTile(url, imgContainer, state)
 
         if (state) {
@@ -35,7 +49,7 @@ export default class Viewport extends BaseView<any, any> {
     }
 
     public setAspectRatio(width: number, height: number) {
-        this.images.forEach(cropper => {
+        this.getCurrentPageImages().forEach(cropper => {
             cropper.setAspectRatio(width, height);
         });
     }
@@ -50,7 +64,7 @@ export default class Viewport extends BaseView<any, any> {
     }
 
     public setMode(mode: ImagePrintMode) {
-        this.images.forEach(image => {
+        this.getCurrentPageImages().forEach(image => {
             image.setMode(mode);
         });
     }
@@ -71,33 +85,73 @@ export default class Viewport extends BaseView<any, any> {
         this.updateTilesZoom();
     }
 
-    public fillColor(fill: boolean){
-        this.images.forEach(image => {
+    public fillColor(fill: boolean) {
+        this.getCurrentPageImages().forEach(image => {
             image.detectColorPalette(fill);
+        });
+    }
+
+    public autoDetectBestFrame(isEnabled: boolean) {
+        this.getCurrentPageImages().forEach(image => {
+            if(isEnabled){
+                image.detectBestFrame();
+            }else{
+                image.resetCropper();
+            }
+        });
+    }
+
+    public setBorderWeight(thickness: number){
+        this.getCurrentPageImages().forEach(image => {
+            image.setBorderWeight(thickness);
+        });
+    }
+
+    public setBorderColor(color: string){
+        this.getCurrentPageImages().forEach(image => {
+            image.setBorderColor(color);
+        });
+    }
+
+    public setFrameType(type: FrameType){
+        console.log('setFrameType', type);
+        this.getCurrentPageImages().forEach(image => {
+            image.setFrameType(type);
         });
     }
 
     private updateTilesZoom() {
         console.log('updateTilesZoom', this.zoomFactor);
-        this.images.forEach(image => {
+        this.getCurrentPageImages().forEach(image => {
             image.setZoom(this.zoomFactor);
         });
     }
 
-    public renderImages(start: number, finish: number) {
+    public renderImages(startIndex: number, endIndex: number) {
         const container = this.getContainer();
         container.innerHTML = "";
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
 
-
-        //this.addImages();
-        //this.addImages();
-       // this.addImages();
-
+        this.getCurrentPageImages().forEach(tile => {
+            // console.log(cropper.getImage());
+            tile.render();
+            container.append(tile.getContainer());
+        });
 
     }
 
-    addImages(){
-        const state =   [
+    public getImagesNumber(): number {
+        return this.images.length;
+    }
+
+    getCurrentPageImages() {
+
+        return this.images.slice(this.startIndex, this.endIndex);
+    }
+
+    addImages() {
+        const state = [
             {
                 "url": "./img/1.jpg",
                 "size": {
@@ -464,40 +518,23 @@ export default class Viewport extends BaseView<any, any> {
         ];
 
         for (let i = 0; i <= state.length - 1; i++) {
-            //this.addImage(state[i].url, state[i] as ImageState);
+            this.addImage(state[i].url, /*state[i] as ImageState*/);
         }
 
         let images2 = [
             {
-                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
+                url: './1.jpg'
             },
             {
                 url: './1.jpg'
             },
             {
-                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
+                url: './1.jpg'
             },
         ]
         for (let i = 0; i <= 2; i++) {
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
-            this.addImage(`.${images2[i].url}`)
+            //this.addImage(`.${images2[i].url}`)
+
             //this.addImage(`./img/${i}.jpg`)
         }
     }

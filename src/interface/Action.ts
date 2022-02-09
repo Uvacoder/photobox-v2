@@ -1,4 +1,6 @@
+import {Commands} from "../constants/Commands";
+
 export interface Action {
-    type: string;
-    payload?: object | boolean | string
+    type: Commands | string;
+    payload?: object | boolean | string | number
 }

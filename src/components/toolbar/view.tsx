@@ -1,43 +1,45 @@
-import {createEffect, createSignal, JSX, onMount} from "solid-js";
+import {createEffect, createSignal, onMount, Show} from "solid-js";
 import {Action} from "../../interface/Action";
 import Props from "../../interface/Props";
-import UIkit from 'uikit';
-import Alert from 'bootstrap/js/dist/alert';
 import {Toast} from "bootstrap";
-import {h} from "tsx-dom";
+import {Commands} from "../../constants/Commands";
+import {ImagePrintMode} from "../../constants/ImagePrintMode";
+import {FrameType} from "../../constants/FrameType";
 
 interface IProps extends Props {
     click: (action: Action) => void
 }
 
 export default {
-    subscribe: (callback: () => void) => {
 
-    },
 
     template: (props: IProps) => {
         const [imageMode, setImageMode] = createSignal(0);
         const [detectPalette, setDetectPalette] = createSignal(false);
+        const [detectBestFrame, setDetectBestFrame] = createSignal(true);
+        const [frameThickness, setFrameThickness] = createSignal(0);
+        const [frameColor, setFrameColor] = createSignal('#ffffff');
+        const [frameType, setFrameType] = createSignal(FrameType.NONE);
 
-        createEffect(() => {
-            dispatch({type: "detect-palette", payload: detectPalette()});
-        })
+
         const dispatch = (action: Action) => {
             props.click(action);
             //subscribe();
         }
-        const state = {
-
-        }
+        const state = {}
         onMount(function () {
             if (props.onMount) {
                 props.onMount(state)
             }
-
+            createEffect(() => {
+                dispatch({type: "detect-palette", payload: detectPalette()});
+            });
+            createEffect(() => {
+                dispatch({type: Commands.AUTO_DETECT_FRAME, payload: detectBestFrame()});
+            });
 
             var toast = new Toast(document.getElementById('liveToast') as Element).show();
 
-            //toast.show()
         })
         return (
             <div>
@@ -58,9 +60,13 @@ export default {
                     <div class="row gx-5 mt-1">
                         <div class="col">
                             <div class="btn-group w-100" role="group" aria-label="Basic outlined example">
-                                <button type="button" class="btn btn-outline-primary" onClick={() => dispatch({type: 'zoomOut'})}>-</button>
+                                <button type="button" class="btn btn-outline-primary"
+                                        onClick={() => dispatch({type: 'zoomOut'})}>-
+                                </button>
                                 <button type="button" class="btn btn-outline-primary" disabled={true}>ZOOM</button>
-                                <button type="button" class="btn btn-outline-primary" onClick={() => dispatch({type: 'zoomIn'})}>+</button>
+                                <button type="button" class="btn btn-outline-primary"
+                                        onClick={() => dispatch({type: 'zoomIn'})}>+
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -72,8 +78,10 @@ export default {
                                     Тип печати
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Лаборатория</a></li>
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Фотопринтер</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Лаборатория</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Фотопринтер</a></li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -90,8 +98,10 @@ export default {
                                     Тип бумаги
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Глянцевая</a></li>
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Матовая</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Глянцевая</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Матовая</a></li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -108,8 +118,10 @@ export default {
                                     Плотность в гм
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Глянцевая</a></li>
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>Матовая</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Глянцевая</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: ''})}>Матовая</a></li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -126,9 +138,12 @@ export default {
                                     Формат
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: '9x13'})}>9x13</a></li>
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: '13x18'})}>13x18</a></li>
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: '9x9'})}>9x9</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: '9x13'})}>9x13</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: '13x18'})}>13x18</a></li>
+                                    <li><a class="dropdown-item" href="#"
+                                           onClick={() => dispatch({type: '9x9'})}>9x9</a></li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -145,8 +160,14 @@ export default {
                                     Кадр целиком
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: 'crop-image'})}>Кадр в обрез</a></li>
-                                    <li><a class="dropdown-item" href="#"onClick={() => dispatch({type: 'full-image'})}>Кадр целиком</a></li>
+                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({
+                                        type: Commands.CHANGE_IMAGE_PRINT_MODE,
+                                        payload: ImagePrintMode.CROP
+                                    })}>Кадр в обрез</a></li>
+                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({
+                                        type: Commands.CHANGE_IMAGE_PRINT_MODE,
+                                        payload: ImagePrintMode.FULL
+                                    })}>Кадр целиком</a></li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -159,8 +180,20 @@ export default {
                         <div class="col">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" checked={detectPalette()} type="checkbox" role="switch"
-                                       id="flexSwitchCheckDefault" onChange={(e) => setDetectPalette((e.target as HTMLInputElement).checked)}/>
+                                       id="flexSwitchCheckDefault"
+                                       onChange={(e) => setDetectPalette((e.target as HTMLInputElement).checked)}/>
                                 <label class="form-check-label" for="flexSwitchCheckDefault">Подобрать фон</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row gx-5 mt-1">
+                        <div class="col">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" checked={detectBestFrame()} type="checkbox"
+                                       role="switch"
+                                       id="flexSwitchCheckDefault"
+                                       onChange={(e) => setDetectBestFrame((e.target as HTMLInputElement).checked)}/>
+                                <label class="form-check-label" for="flexSwitchCheckDefault">Smart кадр</label>
                             </div>
                         </div>
                     </div>
@@ -169,11 +202,34 @@ export default {
                             <div class="btn-group w-100">
                                 <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
                                         data-bs-toggle="dropdown" aria-expanded="false">
-                                    С рамкой
+                                    {frameType()}
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onClick={() => dispatch({type: ''})}>С рамкой</a></li>
-                                    <li><a class="dropdown-item" href="#"onClick={() => dispatch({type: ''})}>Без рамки</a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onClick={() => {
+                                            setFrameType(FrameType.REGULAR)
+                                            //dispatch({type: ''});
+                                            dispatch({type: Commands.CHANGE_FRAME, payload: {frame: FrameType.REGULAR}})
+                                        }}>
+                                        С рамкой
+                                    </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onClick={() => {
+                                            setFrameType(FrameType.POLAROID)
+                                            dispatch({type: Commands.CHANGE_FRAME, payload: {frame: FrameType.POLAROID}})
+                                        }}>
+                                            Рамка Polaroid
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onClick={() => {
+                                            setFrameType(FrameType.NONE)
+                                            dispatch({type: Commands.CHANGE_FRAME, payload: {frame: FrameType.NONE}})
+                                        }}>
+                                            Без рамки
+                                        </a>
+                                    </li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
@@ -182,22 +238,36 @@ export default {
                             </div>
                         </div>
                     </div>
-                    <div class="row gx-5 mt-1 mb-3">
-                        <div class="col">
-                            <div class="form-">
-                                <label for="exampleColorInput" class="col-form-label">Цвет</label>
-                                <input type="color" class="form-control " id="exampleColorInput" value="#563d7c" title="Choose your color"/>
+                    <Show when={frameType() === FrameType.REGULAR}>
+                        <div class="row gx-5 mt-1 mb-3">
+                            <div class="col">
+                                <div class="form-">
+                                    <label for="frameColorInput" class="col-form-label">Цвет</label>
+                                    <input type="color" class="form-control " id="frameColorInput" value={frameColor()}
+                                           title="Choose your color" onInput={(data) => {
+                                        // @ts-ignore
+                                        const value = data.target.value;
+                                        setFrameColor(value);
+                                        dispatch({type: Commands.CHANGE_FRAME, payload: {color: value}})
+                                    }}/>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row gx-5 mt-1 mb-3">
-                        <div class="col">
-                            <div class="form-">
-                                <label for="customRange2" class="form-label">Размер(1мм)</label>
-                                <input type="range" class="form-range" min="0" max="50" step="1" value={1} id="customRange2"/>
+
+                        <div class="row gx-5 mt-1 mb-3">
+                            <div class="col">
+                                <div class="form-">
+                                    <label for="frameColor" class="form-label">Размер({frameThickness}мм)</label>
+                                    <input type="range" class="form-range" onInput={(data) => {
+                                        // @ts-ignore
+                                        const value = data.target.value;
+                                        setFrameThickness(value);
+                                        dispatch({type: Commands.CHANGE_FRAME, payload: {thickness: parseInt(value)}})
+                                    }} min="0" max="15" step="1" value={frameThickness()} id="frameColor"/>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Show>
 
                     <div class="row gx-5 mt-1">
                         <div class="col">
@@ -206,7 +276,7 @@ export default {
                     </div>
 
                 </div>
-               {/* <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                {/* <nav class="navbar navbar-expand-lg navbar-light bg-light">
                     <div class="container-fluid">
                         <a class="navbar-brand" href="#">Navbar</a>
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"

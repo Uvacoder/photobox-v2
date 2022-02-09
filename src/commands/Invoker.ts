@@ -1,5 +1,6 @@
 import Command from "../interface/Command";
 import {Action} from "../interface/Action";
+import {Commands} from "../constants/Commands";
 
 export default class Invoker{
     // The Invoker Class
@@ -9,7 +10,7 @@ export default class Invoker{
         this.commands = {}
     }
 
-    register(commandName: string, command: Command) {
+    register(commandName: Commands | string, command: Command) {
         // Register commands in the Invoker
         if(this.commands[commandName]){
             console.warn(`Command '${commandName}' has been registered earlier. This action will replace the old one.`);
@@ -20,10 +21,10 @@ export default class Invoker{
     execute(action: Action) {
         // Execute any registered commands
         if (action.type in this.commands) {
-            if(action.payload){
-                console.debug(`Executing command: '${action.type}' with payload: ${action.payload}`);
+            if(action.payload != undefined){
+                console.debug(`Executing command: '${Commands[action.type as number]}' with payload: ${JSON.stringify(action.payload)}`);
             }else{
-                console.debug(`Executing command: '${action.type}' without payload`);
+                console.debug(`Executing command: '${Commands[action.type as number]}' without payload`);
             }
             this.commands[action.type].execute(action.payload)
         } else {
