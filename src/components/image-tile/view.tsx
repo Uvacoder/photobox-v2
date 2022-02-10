@@ -5,6 +5,12 @@ import {h} from "tsx-dom";
 import EventBus from 'eventing-bus';
 import Props from "../../interface/Props";
 import State from "../../interface/State";
+import { FaCopy } from "solid-icons/fa";
+import { FaTrashAlt } from "solid-icons/fa";
+import { FaSolidBorderStyle } from "solid-icons/fa";
+import { BsTablet } from "solid-icons/bs";
+import { BsTabletLandscape } from "solid-icons/bs";
+import {Tooltip} from "bootstrap";
 
 export interface IProps extends Props {
     // name: string,
@@ -45,10 +51,19 @@ const view = (props: IProps) => {
         if (props.onMount) {
             props.onMount(state)
         }
+
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-tooltip="tooltip"]'))
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new Tooltip(tooltipTriggerEl)
+        });
+        console.log(tooltipList);
+
     })
     // setInterval(() => setCount(count() + 1), 1000);
     // @ts-ignore
-    return (<div className={'image-container'}>
+    return (
+        <div >
+        <div className={'image-container'}>
         <img src={props.src} alt="" />
         {!loaded() &&
             <div class="spinner-grow text-primary" role="status">
@@ -62,7 +77,30 @@ const view = (props: IProps) => {
                 <div>{props.name}</div>
             }
             <div onClick={() => setCount(count() + 1)}>Count: {count()}</div>*/}
-    </div>)
+    </div>
+            <div class="btn-toolbar " role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group btn-group-sm w-100" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-outline-primary" data-bs-tooltip="tooltip" title="Копировать"  data-bs-placement="bottom">
+                        <FaCopy  size="1em"/>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-bs-tooltip="tooltip" title="Параметры рамки"  data-bs-placement="bottom">
+                        <FaSolidBorderStyle size="1em"/>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-bs-tooltip="tooltip" title="Вертикально"  data-bs-placement="bottom">
+                        <BsTabletLandscape  size="1em"/>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-tooltip="tooltip" title="Удалить"  data-bs-placement="bottom">
+                        <FaTrashAlt size="1em"/>
+                    </button>
+                </div>
+                <div class="input-group mb-3 input-group-sm ">
+                    <button class="btn btn-outline-secondary" type="button" id="button-addon1">-</button>
+                    <input type="text" class="form-control" value="1" aria-label="Example text with button addon" aria-describedby="button-addon1"/>
+                    <button class="btn btn-outline-secondary" type="button" id="button-addon1">+</button>
+                </div>
+            </div>
+    </div>
+    )
 }
 
 export default view;

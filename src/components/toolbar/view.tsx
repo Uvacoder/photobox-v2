@@ -5,6 +5,7 @@ import {Toast} from "bootstrap";
 import {Commands} from "../../constants/Commands";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {FrameType} from "../../constants/FrameType";
+import { BsInfoSquare } from "solid-icons/bs";
 
 interface IProps extends Props {
     click: (action: Action) => void
@@ -47,7 +48,7 @@ export default {
                     <div id="liveToast" class="toast " role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="toast-header">
 
-                            <strong class="me-auto">Photobox v2</strong>
+                            <strong class="me-auto">Photobox v211</strong>
                             <small>Сейчас</small>
                             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>
@@ -74,14 +75,27 @@ export default {
                         <div class="col">
                             <div class="btn-group w-100">
                                 <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                    Тип печати
+
+                                        data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                                    Тип печати <span data-bs-tooltip="tooltip" title="Тип печати"  data-bs-placement="right">
+                                    <BsInfoSquare size="1.2em"/>
+                                </span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#"
-                                           onClick={() => dispatch({type: ''})}>Лаборатория</a></li>
-                                    <li><a class="dropdown-item" href="#"
-                                           onClick={() => dispatch({type: ''})}>Фотопринтер</a></li>
+                                    <li data-bs-tooltip="tooltip" title="Лаборатория"  data-bs-placement="right">
+                                        <label class="dropdown-item disabled"  for="flexRadioDefault1" onClick={() => dispatch({type: ''})}>
+                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault" id="flexRadioDefault1"  disabled/>
+                                            Лаборатория
+                                        </label>
+                                    </li>
+
+                                    <li>
+                                        <label class="dropdown-item" for="flexRadioDefault2" onClick={() => dispatch({type: ''})}>
+                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked />
+                                            Фотопринтер
+                                        </label>
+
+                                    </li>
                                     <li>
                                         <hr class="dropdown-divider"/>
                                     </li>

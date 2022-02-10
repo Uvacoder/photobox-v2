@@ -77,7 +77,7 @@ const view = (props: IProps) => {
                 </nav>
                 <div class="container-fluid viewport" id={"viewport-container"}>
                 </div>
-                <div id={"pagination-container"}></div>
+                <div id={"pagination-container"} className={"container-fluid "}/>
             </div>
         </div>
     )
