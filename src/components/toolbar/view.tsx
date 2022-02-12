@@ -5,7 +5,8 @@ import {Toast} from "bootstrap";
 import {Commands} from "../../constants/Commands";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {FrameType} from "../../constants/FrameType";
-import { BsInfoSquare } from "solid-icons/bs";
+import {BsInfoSquare} from "solid-icons/bs";
+import {BsGrid} from "solid-icons/bs";
 
 interface IProps extends Props {
     click: (action: Action) => void
@@ -33,7 +34,7 @@ export default {
                 props.onMount(state)
             }
             createEffect(() => {
-                dispatch({type: "detect-palette", payload: detectPalette()});
+                dispatch({type: Commands.DETECT_PALETTE, payload: detectPalette()});
             });
             createEffect(() => {
                 dispatch({type: Commands.AUTO_DETECT_FRAME, payload: detectBestFrame()});
@@ -60,11 +61,13 @@ export default {
                 <div class="container px-4">
                     <div class="row gx-5 mt-1">
                         <div class="col">
-                            <div class="btn-group w-100" role="group" aria-label="Basic outlined example">
+                            <div class="btn-group w-100 btn-group-sm" role="group" aria-label="Basic outlined example">
                                 <button type="button" class="btn btn-outline-primary"
                                         onClick={() => dispatch({type: 'zoomOut'})}>-
                                 </button>
-                                <button type="button" class="btn btn-outline-primary" disabled={true}>ZOOM</button>
+                                <button type="button" class="btn btn-outline-primary" disabled={true}>
+                                    <BsGrid size="1.5em"/>
+                                </button>
                                 <button type="button" class="btn btn-outline-primary"
                                         onClick={() => dispatch({type: 'zoomIn'})}>+
                                 </button>
@@ -77,21 +80,26 @@ export default {
                                 <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
 
                                         data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
-                                    Тип печати <span data-bs-tooltip="tooltip" title="Тип печати"  data-bs-placement="right">
+                                    Тип печати <span data-bs-tooltip="tooltip" title="Тип печати"
+                                                     data-bs-placement="right">
                                     <BsInfoSquare size="1.2em"/>
                                 </span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li data-bs-tooltip="tooltip" title="Лаборатория"  data-bs-placement="right">
-                                        <label class="dropdown-item disabled"  for="flexRadioDefault1" onClick={() => dispatch({type: ''})}>
-                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault" id="flexRadioDefault1"  disabled/>
+                                    <li data-bs-tooltip="tooltip" title="Лаборатория" data-bs-placement="right">
+                                        <label class="dropdown-item disabled" for="flexRadioDefault1"
+                                               onClick={() => dispatch({type: ''})}>
+                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault"
+                                                   id="flexRadioDefault1" disabled/>
                                             Лаборатория
                                         </label>
                                     </li>
 
                                     <li>
-                                        <label class="dropdown-item" for="flexRadioDefault2" onClick={() => dispatch({type: ''})}>
-                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked />
+                                        <label class="dropdown-item" for="flexRadioDefault2"
+                                               onClick={() => dispatch({type: ''})}>
+                                            <input class="form-check-input m-1" type="radio" name="flexRadioDefault"
+                                                   id="flexRadioDefault2" checked/>
                                             Фотопринтер
                                         </label>
 
@@ -225,13 +233,16 @@ export default {
                                             //dispatch({type: ''});
                                             dispatch({type: Commands.CHANGE_FRAME, payload: {frame: FrameType.REGULAR}})
                                         }}>
-                                        С рамкой
-                                    </a>
+                                            С рамкой
+                                        </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="#" onClick={() => {
                                             setFrameType(FrameType.POLAROID)
-                                            dispatch({type: Commands.CHANGE_FRAME, payload: {frame: FrameType.POLAROID}})
+                                            dispatch({
+                                                type: Commands.CHANGE_FRAME,
+                                                payload: {frame: FrameType.POLAROID}
+                                            })
                                         }}>
                                             Рамка Polaroid
                                         </a>
@@ -290,88 +301,6 @@ export default {
                     </div>
 
                 </div>
-                {/* <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <div class="container-fluid">
-                        <a class="navbar-brand" href="#">Navbar</a>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                                aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'zoomIn'})}>+</a></li>
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'zoomOut'})}>-</a></li>
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'full-image'})}>Full</a></li>
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'crop-image'})}>Crop</a></li>
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'fill-color'})}>Fill color</a>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="btn btn-primary" type="button" disabled>
-                                        <span class="spinner-border spinner-border-sm" role="status"
-                                              aria-hidden="true"> </span>
-                                        Loading...
-                                    </button>
-                                </li>
-                                <li class="nav-item"><a class="nav-link" aria-current="page" href="#"
-                                                        onClick={() => dispatch({type: 'export'})}>EXPORT</a></li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" aria-current="page" href="#">Home</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Link</a>
-                                </li>
-                                <li class="dropdown">
-                                    <button class="btn btn-secondary dropdown-toggle btn-sm" type="button"
-                                            id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Размер
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                        <li><a class="dropdown-item" href="#">Action</a></li>
-                                        <li><a class="dropdown-item" href="#">Another action</a></li>
-                                        <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                        <li><a class="dropdown-item" aria-current="page" href="#"
-                                               onClick={() => dispatch({type: '9x13'})}>9x13</a></li>
-                                        <li><a class="dropdown-item" aria-current="page" href="#"
-                                               onClick={() => dispatch({type: '9x9'})}>9x9</a></li>
-                                        <li><a class="dropdown-item" aria-current="page" href="#"
-                                               onClick={() => dispatch({type: '13x18'})}>13x18</a></li>
-                                    </ul>
-                                </li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false">
-                                        Dropdown
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <li><a class="dropdown-item" href="#">Action</a></li>
-                                        <li><a class="dropdown-item" href="#">Another action</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider"/>
-                                        </li>
-                                        <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                    </ul>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link disabled">Disabled</a>
-                                </li>
-                            </ul>
-                            <form class="d-flex">
-                                <input class="form-control me-2" type="search" placeholder="Search"
-                                       aria-label="Search"/>
-                                <button class="btn btn-outline-success" type="submit">Search</button>
-                            </form>
-                        </div>
-                    </div>
-                </nav>
-
-*/}
-
             </div>)
     }
 }

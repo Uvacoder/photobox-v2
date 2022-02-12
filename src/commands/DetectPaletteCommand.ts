@@ -1,7 +1,7 @@
 import Command from "../interface/Command";
 import Application from "../Application";
 
-export class FillColorCommand implements Command {
+export class DetectPaletteCommand implements Command {
     private app: Application;
 
     constructor(app: Application) {

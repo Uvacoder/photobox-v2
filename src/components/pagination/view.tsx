@@ -1,4 +1,4 @@
-import {createEffect, createSignal, onMount} from "solid-js";
+import {createEffect, createSignal, onMount, Show} from "solid-js";
 import Props from "../../interface/Props";
 import State from "../../interface/State";
 import {Pagination} from "../../interface/Pagination";
@@ -31,9 +31,8 @@ const view = (props: IProps) => {
         paginationData: paginationData(),
         setPaginationData
     }
-
     const goToPage = (page: number) => {
-        if (page < 1 || page > props.paginationData.totalPages) {
+        if (page < 1 || page > paginationData().totalPages || page == currentPage()) {
             return;
         }
         props.onPageChanged(page);
@@ -56,7 +55,7 @@ const view = (props: IProps) => {
     }
 
     return (
-        <div>
+        <Show when={paginationData().totalPages > 0}>
             <ul class="pagination">
                 <li className={`page-item ${currentPage() <= 1 ? 'disabled' : ''}`}>
                     <a class="page-link" href="#" onClick={() => goToPage(currentPage() - 1)}>&laquo;</a>
@@ -100,7 +99,7 @@ const view = (props: IProps) => {
                     <a class="page-link" href="#" onClick={() => goToPage(currentPage() + 1)}>&raquo;</a>
                 </li>
             </ul>
-        </div>
+        </Show>
 
     )
 }

@@ -68,6 +68,7 @@ export abstract class BaseView<P = Props, S = State> {
     }
 
     public getPlainDomElement(): HTMLElement {
-        return (this.element as HTMLElement);
+        // @ts-ignore
+        return (this.element[0] as HTMLElement);
     }
 }

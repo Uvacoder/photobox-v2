@@ -2,7 +2,7 @@ import {Pagination} from "../interface/Pagination";
 
 function paginate(
     totalItems: number,
-    currentPage: number = 5,
+    currentPage: number = 1,
     pageSize: number = 10,
     maxPages: number = 10
 ): Pagination {

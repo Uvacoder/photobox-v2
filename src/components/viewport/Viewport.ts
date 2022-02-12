@@ -1,39 +1,42 @@
 import {BaseView} from "../../BaseView";
 import {ImageTile} from "../image-tile/ImageTile";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
-import {ImageState} from "../../interface/ImageState";
+import {ImageParameters} from "../../interface/ImageParameters";
 import {SimplePagination} from 'ts-pagination';
-import pagination from '../../utils/paginate';
 import {FrameType} from "../../constants/FrameType";
+import Application from "../../Application";
+import {Pagination as PaginationData} from "../../interface/Pagination";
 
 export default class Viewport extends BaseView<any, any> {
     private images: ImageTile[] = [];
-    private zoomFactor: number = 1;
+    public static zoomFactor: number = 1;
     private maxZoomFactor: number = 1.5;
     private minZoomFactor: number = 1;
     private zoomStep: number = .05;
     public static initialSize: number = 200;
-    private currentPage: number = 1;
-    private itemsPerPage: number = 5;
-    private startIndex: number = 0;
-    private endIndex: number = 10;
+
+    private paginationData?: PaginationData;
+    private globalOptions: ImageParameters = {
+        cropData: undefined,
+        imagePrintMode: ImagePrintMode.CROP,
+        quantity: 0,
+        size: {height: 9, width: 9},
+        url: "",
+        border: {
+            thickness: 0,
+            color: "#ffffff"
+        }
+    };
 
     constructor(container?: HTMLElement | null) {
         super(container);
-        const pagerItemSize = 10; // pager item size per page
-        const currentIndex = 0; // currentIndex pagination item
-        const dataTotal = 151; // total data count
-        const dataSize = 10; // data items per page
-
-        const simpleP = new SimplePagination(pagerItemSize, currentIndex, dataTotal, dataSize);
-        //console.log(simpleP);
     }
 
     onMountView(): void {
         console.log('mounted viewport');
     }
 
-    public addImage(url: string, state?: ImageState) {
+    public addImage(url: string, state?: ImageParameters) {
         const container = this.getContainer();
         let imgContainer = document.createElement('div');
         imgContainer.className = 'image-tile';
@@ -46,16 +49,35 @@ export default class Viewport extends BaseView<any, any> {
         }
 
         this.images.push(imageTile);
+
+        if(this.images.length <= Application.CONFIG.imagesPerPage){
+            imageTile.render(this.globalOptions, container);
+            //container.append(imageTile.getContainer());
+        }else if(this.isLastPageWithEmptySlots()){
+            imageTile.render(this.globalOptions, container);
+        }
+    }
+
+    private isLastPageWithEmptySlots(): boolean{
+        if(!this.paginationData){
+            return false;
+        }
+        return this.paginationData.currentPage === this.paginationData.endPage && this.paginationData.totalItems < this.paginationData.currentPage * this.paginationData.pageSize;
+    }
+
+    public setPaginationData(paginationData: PaginationData) {
+        this.paginationData = paginationData;
     }
 
     public setAspectRatio(width: number, height: number) {
+        this.globalOptions.size = {width, height};
         this.getCurrentPageImages().forEach(cropper => {
             cropper.setAspectRatio(width, height);
         });
     }
 
-    public serializeState(): ImageState[] {
-        const state: ImageState[] = [];
+    public serializeState(): ImageParameters[] {
+        const state: ImageParameters[] = [];
         this.images.forEach(image => {
             state.push(image.serializeState());
         });
@@ -64,28 +86,37 @@ export default class Viewport extends BaseView<any, any> {
     }
 
     public setMode(mode: ImagePrintMode) {
+        this.globalOptions.imagePrintMode = mode;
         this.getCurrentPageImages().forEach(image => {
             image.setMode(mode);
         });
     }
 
     public zoomIn() {
-        if (this.zoomFactor >= this.maxZoomFactor) {
+        if (Viewport.zoomFactor >= this.maxZoomFactor) {
             return;
         }
-        this.zoomFactor = this.zoomFactor + this.zoomStep;
+        Viewport.zoomFactor = Viewport.zoomFactor + this.zoomStep;
         this.updateTilesZoom();
     }
 
     public zoomOut() {
-        if (this.zoomFactor <= this.minZoomFactor) {
+        if (Viewport.zoomFactor <= this.minZoomFactor) {
             return;
         }
-        this.zoomFactor = this.zoomFactor - this.zoomStep;
+        Viewport.zoomFactor = Viewport.zoomFactor - this.zoomStep;
         this.updateTilesZoom();
     }
 
+    private updateTilesZoom() {
+        this.getCurrentPageImages().forEach(image => {
+            console.log(image);
+            image.setZoom();
+        });
+    }
+
     public fillColor(fill: boolean) {
+        this.globalOptions.detectAndFillWithGradient = fill;
         this.getCurrentPageImages().forEach(image => {
             image.detectColorPalette(fill);
         });
@@ -93,52 +124,42 @@ export default class Viewport extends BaseView<any, any> {
 
     public autoDetectBestFrame(isEnabled: boolean) {
         this.getCurrentPageImages().forEach(image => {
-            if(isEnabled){
+            if (isEnabled) {
                 image.detectBestFrame();
-            }else{
+            } else {
                 image.resetCropper();
             }
         });
     }
 
-    public setBorderWeight(thickness: number){
+    public setBorderWeight(thickness: number) {
+        this.globalOptions.border!.thickness = thickness;
         this.getCurrentPageImages().forEach(image => {
             image.setBorderWeight(thickness);
         });
     }
 
-    public setBorderColor(color: string){
+    public setBorderColor(color: string) {
+        this.globalOptions.border!.color = color;
         this.getCurrentPageImages().forEach(image => {
             image.setBorderColor(color);
         });
     }
 
-    public setFrameType(type: FrameType){
-        console.log('setFrameType', type);
+    public setFrameType(type: FrameType) {
         this.getCurrentPageImages().forEach(image => {
             image.setFrameType(type);
-        });
-    }
-
-    private updateTilesZoom() {
-        console.log('updateTilesZoom', this.zoomFactor);
-        this.getCurrentPageImages().forEach(image => {
-            image.setZoom(this.zoomFactor);
         });
     }
 
     public renderImages(startIndex: number, endIndex: number) {
         const container = this.getContainer();
         container.innerHTML = "";
-        this.startIndex = startIndex;
-        this.endIndex = endIndex;
 
         this.getCurrentPageImages().forEach(tile => {
-            // console.log(cropper.getImage());
-            tile.render();
-            container.append(tile.getContainer());
+            tile.render(this.globalOptions, container);
+           // container.append(tile.getContainer());
         });
-
     }
 
     public getImagesNumber(): number {
@@ -146,396 +167,9 @@ export default class Viewport extends BaseView<any, any> {
     }
 
     getCurrentPageImages() {
-
-        return this.images.slice(this.startIndex, this.endIndex);
-    }
-
-    addImages() {
-        const state = [
-            {
-                "url": "./img/1.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/2.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/3.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/4.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/5.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/6.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/7.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/8.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/9.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/10.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/11.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/12.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/13.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/14.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/15.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/16.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/17.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/18.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/19.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/20.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/21.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/22.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/23.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/24.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/25.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/26.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/27.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/28.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/29.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/30.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/31.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/32.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/33.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            }
-        ];
-
-        for (let i = 0; i <= state.length - 1; i++) {
-            this.addImage(state[i].url, /*state[i] as ImageState*/);
+        if(!this.paginationData){
+            return this.images.slice(0, Application.CONFIG.imagesPerPage);
         }
-
-        let images2 = [
-            {
-                url: './1.jpg'
-            },
-            {
-                url: './1.jpg'
-            },
-            {
-                url: './1.jpg'
-            },
-        ]
-        for (let i = 0; i <= 2; i++) {
-            //this.addImage(`.${images2[i].url}`)
-
-            //this.addImage(`./img/${i}.jpg`)
-        }
+        return this.images.slice(this.paginationData.startIndex, this.paginationData.endIndex + 1);
     }
 }
