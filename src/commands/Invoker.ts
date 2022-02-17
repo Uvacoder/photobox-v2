@@ -1,5 +1,5 @@
-import Command from "../interface/Command";
-import {Action} from "../interface/Action";
+import Command from "../interface/command/Command";
+import {Action} from "../interface/command/Action";
 import {Commands} from "../constants/Commands";
 
 export default class Invoker{

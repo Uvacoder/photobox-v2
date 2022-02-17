@@ -6,14 +6,24 @@
         }
 
         .image-tile {
-            display: flex;
+            /*display: flex;*/
             margin: 10px;
             vertical-align: middle;
             width: 200px;
-            height: 200px;
+            /* height: 200px;*/
             box-shadow: 0px 0px 4px 1px #ccc;
 
             background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAA3NCSVQICAjb4U/gAAAABlBMVEXMzMz////TjRV2AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAABFJREFUCJlj+M/AgBVhF/0PAH6/D/HkDxOGAAAAAElFTkSuQmCC");
+        }
+
+        .image-tile .btn-toolbar {
+            background: white;
+        }
+
+        .image-tile-wrapper {
+            display: flex;
+            width: 200px;
+            height: 200px;
         }
 
         .image-container {
@@ -41,11 +51,12 @@
             margin: auto;
         }
 
-        .cropper-move{
+        .cropper-move {
             opacity: 1;
             background: none;
             border: 0 solid #fff;
         }
+
         .cropper-bg {
             background: none !important;
         }
@@ -56,4 +67,883 @@
 
         .preview {
             height: 150px;
-        }</style><script defer="defer" src="bundle.js?7a3dcbf5e958c950d31a"></script></head><body><div id="root"></div></body></html>
+        }
+
+        .option-dropdown-title{
+            max-width: 139px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: top;
+        }</style><script defer="defer" src="main.bundle.js?6aecc80a8da49847cd5c"></script><link href="main.css?6aecc80a8da49847cd5c" rel="stylesheet"></head><body><div id="root"></div><script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script><script>const options = [
+        {
+            "description": "Выбирайте по своему вкусу тип покрытия бумаги.",
+            "option_id": "11",
+            "name": "Тип бумаги",
+            "label": "simple",
+            "option_values": [
+                {
+                    "option_value_id": "32",
+                    "image": "",
+                    "description": "Настоящая фотография!\r\nКлассическое фото, 'как были раньше', на фотолаборатории. Химическая печать. Хранение до 100 лет.",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "375"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "Матовая лаборатория",
+                    "value": "",
+                    "price": "8.0000"
+                },
+                {
+                    "option_value_id": "31",
+                    "image": "",
+                    "description": "Настоящая фотография!\r\nКлассическое фото, 'как были раньше', на фотолаборатории. Химическая печать. Хранение до 100 лет.",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "375"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "Глянец лаборатория",
+                    "value": "",
+                    "price": "8.0000"
+                },
+                {
+                    "option_value_id": "402",
+                    "image": "",
+                    "description": "Печать эконом класса, такие фото со временем выцветут.",
+                    "relation_options": [
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        },
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "374",
+                                "376",
+                                "406",
+                                "407",
+                                "409"
+                            ]
+                        }
+                    ],
+                    "name": "Фотопринтер",
+                    "value": "",
+                    "price": "4.0000"
+                }
+            ]
+        },
+        {
+            "description": "Размеры Ваших фото.",
+            "option_id": "9",
+            "name": "Формат бумаги",
+            "label": "size",
+            "option_values": [
+                {
+                    "option_value_id": "20",
+                    "image": "",
+                    "description": "102x152мм",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "A6 (10x15)",
+                    "value": [
+                        "102",
+                        "152"
+                    ],
+                    "price": "5.0000"
+                },
+                {
+                    "option_value_id": "22",
+                    "image": "",
+                    "description": "152×203мм\r\n",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "A5 (15x20)",
+                    "value": [
+                        "152",
+                        "203"
+                    ],
+                    "price": "15.0000"
+                },
+                {
+                    "option_value_id": "103",
+                    "image": "",
+                    "description": "152x216мм",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "15x21 (152x216)",
+                    "value": [
+                        "152",
+                        "216"
+                    ],
+                    "price": "18.0000"
+                },
+                {
+                    "option_value_id": "353",
+                    "image": "",
+                    "description": "152x152мм",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "15x15",
+                    "value": [
+                        "152",
+                        "152"
+                    ],
+                    "price": "19.0000"
+                },
+                {
+                    "option_value_id": "375",
+                    "image": "",
+                    "description": "203х287мм (пропорция А4)",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "203х287мм ",
+                    "value": [
+                        "203",
+                        "287"
+                    ],
+                    "price": "31.0000"
+                },
+                {
+                    "option_value_id": "23",
+                    "image": "",
+                    "description": "203х305мм ",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "203х305мм",
+                    "value": [
+                        "203",
+                        "305"
+                    ],
+                    "price": "31.0000"
+                },
+                {
+                    "option_value_id": "374",
+                    "image": "",
+                    "description": "210х297мм",
+                    "relation_options": [
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "402"
+                            ]
+                        }
+                    ],
+                    "name": "А4",
+                    "value": [
+                        "210",
+                        "297"
+                    ],
+                    "price": "30.0000"
+                },
+                {
+                    "option_value_id": "376",
+                    "image": "",
+                    "description": "297x420мм",
+                    "relation_options": [
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "402"
+                            ]
+                        }
+                    ],
+                    "name": "А3",
+                    "value": [
+                        "297",
+                        "420"
+                    ],
+                    "price": "73.0000"
+                },
+                {
+                    "option_value_id": "408",
+                    "image": "",
+                    "description": "400x500мм - печатаем на пигментном 12ти цветном фотопринтере",
+                    "relation_options": [
+                        {
+                            "option_id": "11",
+                            "option_value_id": []
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": []
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": []
+                        }
+                    ],
+                    "name": "40x50",
+                    "value": [
+                        "400",
+                        "500"
+                    ],
+                    "price": "350.0000"
+                },
+                {
+                    "option_value_id": "407",
+                    "image": "",
+                    "description": "594x841мм  - печатаем на пигментном 12ти цветном фотопринтере",
+                    "relation_options": [
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": []
+                        }
+                    ],
+                    "name": "А1",
+                    "value": [
+                        "594",
+                        "841"
+                    ],
+                    "price": "750.0000"
+                },
+                {
+                    "option_value_id": "406",
+                    "image": "",
+                    "description": "420x594мм - печатаем на пигментном 12ти цветном фотопринтере",
+                    "relation_options": [
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": []
+                        }
+                    ],
+                    "name": "А2",
+                    "value": [
+                        "420",
+                        "594"
+                    ],
+                    "price": "400.0000"
+                },
+                {
+                    "option_value_id": "409",
+                    "image": "",
+                    "description": "841x1189 - печатаем на пигментном 12ти цветном фотопринтере на оригинальной HP сатин бумаге",
+                    "relation_options": [
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "402"
+                            ]
+                        }
+                    ],
+                    "name": "А0",
+                    "value": [
+                        "841",
+                        "1189"
+                    ],
+                    "price": "1200.0000"
+                }
+            ]
+        },
+        {
+            "description": "Кадрирование фотографии",
+            "option_id": "79",
+            "name": "Кадрирование",
+            "label": "framing",
+            "option_values": [
+                {
+                    "image": "",
+                    "description": "",
+                    "option_value_id": "329",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "374",
+                                "375",
+                                "376",
+                                "406",
+                                "407",
+                                "409"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32",
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "Кадр целиком(возможны поля)",
+                    "label": "FULL",
+                    "value": "",
+                    "price": "0.0000"
+                },
+                {
+                    "image": "",
+                    "description": "",
+                    "option_value_id": "330",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "374",
+                                "375",
+                                "376",
+                                "406",
+                                "407",
+                                "409"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32",
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "82",
+                            "option_value_id": [
+                                "341",
+                                "342",
+                                "343"
+                            ]
+                        }
+                    ],
+                    "name": "Без полей",
+                    "label": "CROP",
+                    "value": "",
+                    "price": "0.0000"
+                }
+            ]
+        },
+        {
+            "description": "",
+            "option_id": "82",
+            "name": "Цвет рамки",
+            "label": "border-select",
+            "option_values": [
+                {
+                    "image": "",
+                    "description": "",
+                    "option_value_id": "343",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "374",
+                                "375",
+                                "376",
+                                "409"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32",
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        }
+                    ],
+                    "name": "Без рамки",
+                    "label": "none",
+                    "value": "",
+                    "price": "0.0000"
+                },
+                {
+                    "image": "",
+                    "description": "",
+                    "option_value_id": "341",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "374",
+                                "375",
+                                "376",
+                                "409"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32",
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        }
+                    ],
+                    "name": "Белая",
+                    "label": "solid",
+                    "value": "",
+                    "price": "0.0000"
+                },
+                {
+                    "image": "",
+                    "description": "",
+                    "option_value_id": "342",
+                    "relation_options": [
+                        {
+                            "option_id": "9",
+                            "option_value_id": [
+                                "20",
+                                "22",
+                                "23",
+                                "103",
+                                "353",
+                                "374",
+                                "375",
+                                "376",
+                                "409"
+                            ]
+                        },
+                        {
+                            "option_id": "11",
+                            "option_value_id": [
+                                "31",
+                                "32",
+                                "402"
+                            ]
+                        },
+                        {
+                            "option_id": "77",
+                            "option_value_id": [
+                                "308",
+                                "309"
+                            ]
+                        },
+                        {
+                            "option_id": "79",
+                            "option_value_id": [
+                                "329",
+                                "330"
+                            ]
+                        }
+                    ],
+                    "name": "Полароид",
+                    "label": "polaroid",
+                    "value": "",
+                    "price": "0.0000"
+                }
+            ]
+        }
+    ];
+
+    setTimeout(() => {
+        photobox = new PhotoBox(options, (e) => {
+           // console.log(e);
+            e.addImages(
+                [
+                    {
+                        "url": "./img/1.jpg",
+                        "size": {
+                            "w": 9,
+                            "h": 13
+                        },
+                        "cropData": null,
+                        "imagePrintMode": 0,
+                        "quantity": 1,
+                        "zoom": 0
+                    },
+                    {
+                        "url": "./img/2.jpg",
+                        "size": {
+                            "w": 9,
+                            "h": 13
+                        },
+                        "cropData": null,
+                        "imagePrintMode": 0,
+                        "quantity": 1,
+                        "zoom": 0
+                    }
+                ]
+            )
+        });
+
+        photobox.onInit = function (){
+            console.log('onInitGlob');
+
+        }
+    }, 500);</script></body></html>

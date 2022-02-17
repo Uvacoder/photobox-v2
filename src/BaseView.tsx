@@ -3,7 +3,7 @@ import Counter, {IProps} from "./components/image-tile/view";
 import {JSX} from "solid-js";
 import Props from "./interface/Props";
 import State from "./interface/State";
-import {IState} from "./components/pagination/view";
+
 
 export abstract class BaseView<P = Props, S = State> {
     private element: JSX.Element | null = null;
@@ -32,11 +32,7 @@ export abstract class BaseView<P = Props, S = State> {
         // return new Promise<void>((resolve, reject) => {
         this.element = element(props);
         if (this.container) {
-            render(() => {
-                // resolve();
-                // this.mounted({});
-                return this.element as any;
-            }, this.container || document.body);
+            render(() => this.element, this.container || document.body);
         }
         //});
     }
@@ -70,5 +66,13 @@ export abstract class BaseView<P = Props, S = State> {
     public getPlainDomElement(): HTMLElement {
         // @ts-ignore
         return (this.element[0] as HTMLElement);
+    }
+
+    public createHTMLElement(tag: string, lassName?: string): HTMLElement {
+        const el = document.createElement(tag);
+        if(lassName){
+            el.className = lassName;
+        }
+        return el;
     }
 }

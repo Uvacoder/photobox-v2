@@ -1,5 +1,6 @@
 export enum FrameType{
-    NONE = "frame_none",
-    POLAROID = "frame_polaroid",
-    REGULAR = "frame_regular"
+    FRAME_OPTION_LABEL = "border-select",
+    NONE = "none",
+    POLAROID = "polaroid",
+    REGULAR = "solid"
 }

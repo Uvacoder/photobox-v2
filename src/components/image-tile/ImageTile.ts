@@ -1,4 +1,4 @@
-/// <reference path="../../BaseView.ts" />
+/// <reference path="../../BaseView.tsx" />
 import {BaseView} from "../../BaseView";
 import Cropper from "cropperjs";
 import smartcrop from "smartcrop";
@@ -10,6 +10,9 @@ import {ImageParameters} from "../../interface/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
 import CropEndEvent = Cropper.CropEndEvent;
 import SetDataOptions = Cropper.SetDataOptions;
+import Application from "../../Application";
+import {Commands} from "../../constants/Commands";
+import {v4 as uuidv4} from 'uuid';
 
 export class ImageTile extends BaseView<IProps, IState> {
     private thumbnail: string = "";
@@ -17,8 +20,12 @@ export class ImageTile extends BaseView<IProps, IState> {
     private cropper: Cropper | null = null;
     private viewState: IState | null = null;
     private isMounted: boolean = false;
+    public uuid: string = uuidv4();
     private imageParameters: ImageParameters = {
-        url: "",
+        src: {
+            thumbnail: "",
+            full: ""
+        },
         size: {
             width: 9,
             height: 13
@@ -33,7 +40,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         // this.mountView(view, {src});
         this.thumbnail = thumbnail;
 
-        this.imageParameters.url = thumbnail;
+        this.imageParameters.src.thumbnail = thumbnail;
         if (serializedState) {
             this.imageParameters = serializedState;
         }
@@ -41,21 +48,40 @@ export class ImageTile extends BaseView<IProps, IState> {
     }
 
     render(state?: ImageParameters, container?: HTMLElement) {
-        if (!this.isMounted) {
-            this.mountView(view, {src: this.thumbnail});
-        }
-
-        if(state){
+        if (state) {
             this.imageParameters = {...this.imageParameters, ...state}
         }
+        if (!this.isMounted) {
+            const props: IProps = {
+                src: this.thumbnail,
+                setFrameColor: this.setFrameColor.bind(this),
+                setFrameWeight: this.setFrameWeight.bind(this),
+                setFrameType: this.setFrameType.bind(this),
+                cloneTile: this.cloneTile.bind(this),
+                deleteTile: this.deleteTile.bind(this),
+            };
+            this.mountView(view, props);
+        }
 
-        if(container){
+
+        if (container) {
             container.append(this.getContainer());
         }
 
         this.updateTile();
         //this.viewState?.setLoaded(false);
     }
+
+    cloneTile() {
+        // console.log(this);
+        // console.log('cloneTile');
+        Application.INVOKER.execute({type: Commands.CLONE_TILE, payload: this.uuid});
+    }
+
+    deleteTile(){
+        Application.INVOKER.execute({type: Commands.DELETE_TILE, payload: this.uuid});
+    }
+
 
     onMountView(state: IState) {
         this.viewState = state;
@@ -117,13 +143,11 @@ export class ImageTile extends BaseView<IProps, IState> {
                     //that.cropData = event.detail;
                 },
                 zoom(event) {
-                    console.log(event);
                     that.imageParameters.zoom = event.detail.ratio;
                     // that.cropData = cropper.getData();
                 },
                 cropend(event: CropEndEvent) {
                     that.imageParameters.cropData = cropper.getData();
-                    console.log(cropper.getData());
                 },
                 ready() {
                     //that.detectBestFrame.call(that, this as CanvasImageSource, cropper)
@@ -187,7 +211,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
         // @ts-ignore
         this.cropper?.resize();
-       // this.detectBestFrame();
+        // this.detectBestFrame();
 
     }
 
@@ -207,6 +231,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (this.imageParameters.imagePrintMode == ImagePrintMode.CROP) {
             this.imageParameters.cropData = this.cropper?.getData(true) || null;
         }
+        console.log(this.imageParameters);
         return this.imageParameters;
     }
 
@@ -265,9 +290,9 @@ export class ImageTile extends BaseView<IProps, IState> {
     public setFrameType(type: FrameType) {
         let frameElement: HTMLElement;
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
-             frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
-        }else{
-             frameElement = this.getImageContainer();
+            frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
+        } else {
+            frameElement = this.getImageContainer();
         }
 
         if (!frameElement) {
@@ -285,9 +310,14 @@ export class ImageTile extends BaseView<IProps, IState> {
                 frameElement.style.border = "none"
                 break;
         }
+
+        this.viewState?.setFrameType(type);
     }
 
-    public setBorderWeight(thickness: number) {
+    public setFrameWeight(thickness: number) {
+        if (!this.imageParameters) {
+            return;
+        }
         if (this.imageParameters.border == undefined) {
             this.imageParameters.border = {
                 thickness: 0,
@@ -307,9 +337,14 @@ export class ImageTile extends BaseView<IProps, IState> {
             tile.style.borderColor = this.imageParameters.border.color;
             tile.style.borderWidth = `${thickness}px`;
         }
+
+        this.viewState?.setFrameThickness(thickness);
     }
 
-    public setBorderColor(color: string) {
+    public setFrameColor(color: string) {
+        if (!this.imageParameters) {
+            return;
+        }
         if (this.imageParameters.border == undefined) {
             this.imageParameters.border = {
                 thickness: 0,
@@ -330,6 +365,8 @@ export class ImageTile extends BaseView<IProps, IState> {
             tile.style.borderWidth = `${this.imageParameters.border.thickness}px`;
             tile.style.borderColor = color;
         }
+
+        this.viewState?.setFrameColor(color);
     }
 
     public detectColorPalette(isTrue: boolean) {

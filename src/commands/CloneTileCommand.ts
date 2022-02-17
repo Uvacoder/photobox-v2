@@ -1,7 +1,8 @@
 import Command from "../interface/command/Command";
 import Application from "../Application";
+import {ImageTile} from "../components/image-tile/ImageTile";
 
-export default class ChangeAspectCommand implements Command {
+export default class CloneTileCommand implements Command {
     private app: Application;
 
 
@@ -10,8 +11,8 @@ export default class ChangeAspectCommand implements Command {
 
     }
 
-    execute(size: string[]): void {
-        this.app.getViewport().setAspectRatio(parseInt(size[0]), parseInt(size[1]));
+    execute(uuid: string): void {
+        this.app.getViewport().cloneTile(uuid);
     }
 
 

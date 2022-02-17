@@ -1,4 +1,4 @@
 export enum ImagePrintMode {
-    FULL,
-    CROP
+    FULL = "FULL",
+    CROP = "CROP"
 }

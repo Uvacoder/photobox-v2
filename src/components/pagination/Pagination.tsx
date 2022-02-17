@@ -20,6 +20,11 @@ export default class Pagination extends BaseView<IProps, IState> {
         this.mountView(view, {onPageChanged: this.onPageChanged.bind(this), paginationData: pagination});
     }
 
+    onMountView(state: IState) {
+        console.log('Pagination');
+        this.viewState = state;
+    }
+
     public registerViewport(viewport: Viewport) {
         if (!this.viewport) {
             this.viewport = viewport;
@@ -43,10 +48,7 @@ export default class Pagination extends BaseView<IProps, IState> {
         return result;
     }
 
-    onMountView(state: IState) {
-        this.viewState = state;
-        //this.onPageChanged(1);
-    }
+
 
     onPageChanged(page: number) {
         this.currentPage = page;

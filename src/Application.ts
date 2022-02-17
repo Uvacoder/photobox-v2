@@ -1,4 +1,3 @@
-/** @jsx element */
 import Pagination from "./components/pagination/Pagination";
 import Toolbar from "./components/toolbar/Toolbar";
 import Viewport from "./components/viewport/Viewport";
@@ -8,7 +7,6 @@ import Invoker from "./commands/Invoker";
 import TileZoomInCommand from "./commands/TileZoomInCommand";
 import TileZoomOutCommand from "./commands/TileZoomOutCommand";
 import ChangeAspectCommand from "./commands/ChangeAspectCommand";
-import {ImagePrintMode} from "./constants/ImagePrintMode";
 import ImagePrintModeCommand from "./commands/ImagePrintModeCommand";
 import {ExportOrderCommand} from "./commands/ExportOrderCommand";
 import {DetectPaletteCommand} from "./commands/DetectPaletteCommand";
@@ -18,43 +16,52 @@ import {Commands} from "./constants/Commands";
 import {DetectBestFrameCommand} from "./commands/DetectBestFrameCommand";
 import {ChangeFrameCommand} from "./commands/ChangeFrameCommand";
 import Config from "./interface/Config";
+import CloneTileCommand from "./commands/CloneTileCommand";
+import DeleteTileCommand from "./commands/DeleteTileCommand";
+import dict from "./i18n/dict.json";
+import i18next, {TFunction} from "i18next";
+import {ApplicationBase} from "./interface/ApplicationBase";
+import {Option} from "./interface/options/Option";
 
-export default class Application {
+export default class Application implements ApplicationBase{
     private container = document.getElementById('root');
-    private viewport: Viewport;
-    private pagination: Pagination;
-    public static INVOKER: Invoker;
+    private viewport!: Viewport;
+    private pagination!: Pagination;
+    private toolbar!: Toolbar;
     public static CONFIG: Config;
+    public static INVOKER = new Invoker();
+    public onInitGlob: (() => void)  | undefined;
+    private options: Option[];
 
-    constructor() {
-
+    constructor(options: Option[], onInitGlob: (() => void)  | undefined) {
         Application.CONFIG = {
             imagesPerPage: 10
         }
-        this.registerListeners();
-        this.createSkeleton();
+        this.options = options;
 
+        this.onInitGlob = onInitGlob;
 
-        const toolbar = new Toolbar(document.getElementById("sidebar-container"));
+    }
 
+    public async init(){
+        await this.initI18N();
+        await this.createSkeleton();
 
-        this.viewport = new Viewport(document.getElementById("viewport-container"));
-        this.pagination = new Pagination(document.getElementById("pagination-container"));
+        this.toolbar = await new Toolbar(document.getElementById("sidebar-container"));
+        this.viewport = await new Viewport(document.getElementById("viewport-container"));
+        this.pagination = await new Pagination(document.getElementById("pagination-container"));
+
         this.pagination.registerViewport(this.viewport);
+        this.viewport.subscribe(this.toolbar);
+        this.toolbar.setOptions(this.options);
 
-
+        this.registerCommands();
+        this.registerListeners();
 
         setTimeout(() => {
             this.addImages();
+
         }, 100);
-
-        setTimeout(() => {
-
-            //this.viewport.renderImages(2);
-            //Application.INVOKER.execute({type: "go-to-page", payload: 2})
-            // pagination.setPage(2)
-        }, 3000);
-        this.registerCommands();
     }
 
     public getViewport() {
@@ -67,17 +74,38 @@ export default class Application {
         render(() => element.getJSXElement(), el);
     }
 
+    private onMount(){
+        console.log('Main mounted');
+    }
+
+
+    onInit(): Promise<any> {
+        return Promise.resolve(undefined);
+    }
+
     private createSkeleton() {
-        render(() => view({}), this.container || document.body);
+        render(() => view({onMount: this.onMount}), this.container || document.body);
+    }
+
+    private initI18N(): Promise<TFunction>{
+        return i18next
+            .init({
+                lng: 'en', // if you're using a language detector, do not define the lng option
+                debug: true,
+
+                resources: {
+                    en: {
+                        translation: dict
+                    }
+                }
+            });
     }
 
     private registerCommands() {
-        Application.INVOKER = new Invoker();
+
         Application.INVOKER.register('zoomIn', new TileZoomInCommand(this));
         Application.INVOKER.register('zoomOut', new TileZoomOutCommand(this));
-        Application.INVOKER.register('13x18', new ChangeAspectCommand(this, 13, 18));
-        Application.INVOKER.register('9x9', new ChangeAspectCommand(this, 9, 9));
-        Application.INVOKER.register('9x13', new ChangeAspectCommand(this, 9, 13));
+        Application.INVOKER.register(Commands.CHANGE_SIZE, new ChangeAspectCommand(this));
         Application.INVOKER.register(Commands.CHANGE_IMAGE_PRINT_MODE, new ImagePrintModeCommand(this));
         Application.INVOKER.register('crop-image', new ImagePrintModeCommand(this));
         Application.INVOKER.register('export', new ExportOrderCommand(this));
@@ -86,9 +114,14 @@ export default class Application {
         Application.INVOKER.register(Commands.GO_TO_PAGE, new GoToPageCommand(this));
         Application.INVOKER.register(Commands.AUTO_DETECT_FRAME, new DetectBestFrameCommand(this));
         Application.INVOKER.register(Commands.CHANGE_FRAME, new ChangeFrameCommand(this));
+        Application.INVOKER.register(Commands.CLONE_TILE, new CloneTileCommand(this));
+        Application.INVOKER.register(Commands.DELETE_TILE, new DeleteTileCommand(this));
     }
 
     private registerListeners() {
+        window.addEventListener('click', event => {
+           // console.log(event);
+        })
         window.addEventListener('DOMContentLoaded', event => {
 
             // Toggle the side navigation
@@ -108,7 +141,18 @@ export default class Application {
         });
     }
 
+    public addImages1(images: any[]){
+        console.log('addImages1', images.length);
+
+        for (let i = 0; i <= images.length - 1; i++) {
+            this.viewport.addImage(images[i].url, /*state[i] as ImageState*/);
+            this.pagination.updatePaginationData(this.viewport.getImagesNumber());
+        }
+        console.log(this.viewport.getImagesNumber());
+    }
+
     private addImages() {
+        return;
         const state = [
             {
                 "url": "./img/1.jpg",
@@ -477,7 +521,6 @@ export default class Application {
 
         for (let i = 0; i <= state.length - 5; i++) {
             this.viewport.addImage(state[i].url, /*state[i] as ImageState*/);
-
         }
         this.pagination.updatePaginationData(this.viewport.getImagesNumber());
         let images2 = [
@@ -501,6 +544,5 @@ export default class Application {
         }, 5000);
 
     }
-}
 
-new Application();
+}

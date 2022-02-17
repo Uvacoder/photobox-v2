@@ -1,4 +1,4 @@
-import Command from "../interface/Command";
+import Command from "../interface/command/Command";
 import Application from "../Application";
 
 export class ChangeFrameCommand implements Command {

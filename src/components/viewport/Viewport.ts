@@ -2,18 +2,18 @@ import {BaseView} from "../../BaseView";
 import {ImageTile} from "../image-tile/ImageTile";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {ImageParameters} from "../../interface/ImageParameters";
-import {SimplePagination} from 'ts-pagination';
 import {FrameType} from "../../constants/FrameType";
 import Application from "../../Application";
 import {Pagination as PaginationData} from "../../interface/Pagination";
 
-export default class Viewport extends BaseView<any, any> {
-    private images: ImageTile[] = [];
+export default class Viewport extends BaseView<any, any> implements Observable {
+    public images: ImageTile[] = [];
     public static zoomFactor: number = 1;
     private maxZoomFactor: number = 1.5;
     private minZoomFactor: number = 1;
     private zoomStep: number = .05;
     public static initialSize: number = 200;
+    private observers: Set<Observer>;
 
     private paginationData?: PaginationData;
     private globalOptions: ImageParameters = {
@@ -21,7 +21,10 @@ export default class Viewport extends BaseView<any, any> {
         imagePrintMode: ImagePrintMode.CROP,
         quantity: 0,
         size: {height: 9, width: 9},
-        url: "",
+        src: {
+            thumbnail: "",
+            full: ""
+        },
         border: {
             thickness: 0,
             color: "#ffffff"
@@ -30,10 +33,28 @@ export default class Viewport extends BaseView<any, any> {
 
     constructor(container?: HTMLElement | null) {
         super(container);
+        this.observers = new Set()
     }
 
-    onMountView(): void {
-        console.log('mounted viewport');
+    subscribe(observer: Observer): void {
+        this.observers.add(observer)
+    }
+
+    unsubscribe(observer: Observer): void {
+        this.observers.delete(observer);
+    }
+
+    notify(message: any): void {
+        this.observers.forEach(observer => {
+            observer.update(message);
+        })
+    }
+
+    onMountView() {
+    }
+
+    private notifyImagesChanged(){
+        this.notify(this.images.length)
     }
 
     public addImage(url: string, state?: ImageParameters) {
@@ -42,7 +63,7 @@ export default class Viewport extends BaseView<any, any> {
         imgContainer.className = 'image-tile';
 
         //container.insertBefore(imgContainer, container.firstChild);
-        const imageTile = new ImageTile(url, imgContainer, state)
+        const imageTile = new ImageTile(url, this.createHTMLElement('div', 'image-tile'), state)
 
         if (state) {
             //imageTile.deserializeState(state);
@@ -50,16 +71,43 @@ export default class Viewport extends BaseView<any, any> {
 
         this.images.push(imageTile);
 
-        if(this.images.length <= Application.CONFIG.imagesPerPage){
+        if (this.images.length <= Application.CONFIG.imagesPerPage) {
             imageTile.render(this.globalOptions, container);
             //container.append(imageTile.getContainer());
-        }else if(this.isLastPageWithEmptySlots()){
+        } else if (this.isLastPageWithEmptySlots()) {
             imageTile.render(this.globalOptions, container);
         }
+
+        this.notifyImagesChanged( );
     }
 
-    private isLastPageWithEmptySlots(): boolean{
-        if(!this.paginationData){
+    public cloneTile(uuid: string) {
+        let index = this.images.map(function (e) {
+            return e.uuid;
+        }).indexOf(uuid);
+        const originalTile = this.images[index];
+        const container = this.createHTMLElement('div', 'image-tile');
+        const newTile = new ImageTile(originalTile.serializeState().src.thumbnail, container, originalTile.serializeState());
+        this.images.splice(index + 1, 0, newTile);
+        if (this.paginationData) {
+            this.renderImages(0, 10);
+        }
+        this.notifyImagesChanged();
+    }
+
+    public deleteTile(uuid: string) {
+        let index = this.images.map(function (e) {
+            return e.uuid;
+        }).indexOf(uuid);
+        this.images.splice(index, 1);
+        if (this.paginationData) {
+            this.renderImages(0, 10);
+        }
+        this.notifyImagesChanged();
+    }
+
+    private isLastPageWithEmptySlots(): boolean {
+        if (!this.paginationData) {
             return false;
         }
         return this.paginationData.currentPage === this.paginationData.endPage && this.paginationData.totalItems < this.paginationData.currentPage * this.paginationData.pageSize;
@@ -135,14 +183,14 @@ export default class Viewport extends BaseView<any, any> {
     public setBorderWeight(thickness: number) {
         this.globalOptions.border!.thickness = thickness;
         this.getCurrentPageImages().forEach(image => {
-            image.setBorderWeight(thickness);
+            image.setFrameWeight(thickness);
         });
     }
 
     public setBorderColor(color: string) {
         this.globalOptions.border!.color = color;
         this.getCurrentPageImages().forEach(image => {
-            image.setBorderColor(color);
+            image.setFrameColor(color);
         });
     }
 
@@ -158,7 +206,7 @@ export default class Viewport extends BaseView<any, any> {
 
         this.getCurrentPageImages().forEach(tile => {
             tile.render(this.globalOptions, container);
-           // container.append(tile.getContainer());
+            // container.append(tile.getContainer());
         });
     }
 
@@ -167,7 +215,7 @@ export default class Viewport extends BaseView<any, any> {
     }
 
     getCurrentPageImages() {
-        if(!this.paginationData){
+        if (!this.paginationData) {
             return this.images.slice(0, Application.CONFIG.imagesPerPage);
         }
         return this.images.slice(this.paginationData.startIndex, this.paginationData.endIndex + 1);

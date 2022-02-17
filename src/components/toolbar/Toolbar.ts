@@ -1,14 +1,15 @@
 import {BaseView} from "../../BaseView";
-import view from "./view";
+import view, {IState} from "./view";
 import {ImageTile} from "../image-tile/ImageTile";
-import Command from "../../interface/Command";
+import Command from "../../interface/command/Command";
 import Application from "../../Application";
-import {IState} from "../image-tile/view";
-import {Action} from "../../interface/Action";
+import {Action} from "../../interface/command/Action";
+import {Option} from "../../interface/options/Option";
+import OptionsHandler from "../../utils/OptionsHandler";
 
-export default class Toolbar extends BaseView<any> {
-    private zoomIn: Command | undefined;
-    private zoomOut: Command | undefined;
+export default class Toolbar extends BaseView<any, any> implements Observer{
+
+    private viewState: IState | null = null;
 
     constructor(container?: HTMLElement | null) {
         super(container);
@@ -18,15 +19,20 @@ export default class Toolbar extends BaseView<any> {
 
             }
         };
-        this.mountView(view.template, props);
+        this.mountView(view, props);
     }
 
     onMountView(state: IState): void {
-        console.log('mounted');
-
+        this.viewState = state;
     }
 
-    public setOnStart(command: Command): void {
-        this.zoomIn = command;
+    public setOptions(options: Option[]){
+        this.viewState?.setOptions(OptionsHandler.toMap(options));
     }
+
+    update(...args: unknown[]): void {
+
+        this.viewState?.setImagesNumber(args[0] as number)
+    }
+
 }

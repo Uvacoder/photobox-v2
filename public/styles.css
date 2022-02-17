@@ -8,6 +8,7 @@
   margin-left: -15rem;
   transition: margin 0.25s ease-out;
   width: 15rem;
+  z-index: 9;
 }
 
 #sidebar-wrapper .sidebar-heading {
@@ -42,5 +43,12 @@ body.sb-sidenav-toggled #wrapper #sidebar-container {
 
   body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
     margin-left: -15rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #sidebar-wrapper{
+    position: fixed;
+    width: 12rem;
   }
 }

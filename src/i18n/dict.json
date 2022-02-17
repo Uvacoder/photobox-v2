@@ -1,0 +1,11 @@
+{
+  "hello": "Hello {{name}}",
+  "tile":{
+    "copy": "Копировать"
+  },
+  "toolbar": {
+    "imageQuantity": "Количество: {{number}}",
+    "totalImages": "Фотографий: {{number}}",
+    "loadedImages": "Загружено изображений {{current}}/{{total}}"
+  }
+}

@@ -1,8 +1,11 @@
 import {ImagePrintMode} from "../constants/ImagePrintMode";
 
 export interface ImageParameters {
-    thumbnail?: string,
-    url: string,
+
+    src: {
+        thumbnail: string,
+        full: string
+    }
     cropData: Cropper.Data | null | undefined;
     size: { width: number, height: number };
     imagePrintMode: ImagePrintMode;
@@ -15,5 +18,10 @@ export interface ImageParameters {
     zoom?: number,
     rotate?: number,
     copies?: number,
-    detectAndFillWithGradient?: boolean
+    detectAndFillWithGradient?: boolean,
+    colorAdjustment?: {
+        hue?: number,
+        brightness?: number,
+        contrast?: number,
+    }
 }

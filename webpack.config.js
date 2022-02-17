@@ -1,20 +1,29 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require("path");
-
 
 
 module.exports = (env) => {
     console.log(env.production ? "production" : "development");
     return {
-        entry: "./src/Application.tsx",
+        entry: "./src/index.ts",
         devtool: "source-map",
+
         mode: env.production ? "production" : "development",
         output: {
+            library: {
+                name: 'PhotoBox',
+                type: 'var',
+                export: 'default',
+            },
             path: path.resolve(__dirname, "dist"),
-            filename: "bundle.js"
+            filename: "[name].bundle.js",
+            globalObject: "this",
+            umdNamedDefine: true
         },
         optimization: {
+            concatenateModules: true,
             minimize: env.production,
             minimizer: [
                 new TerserPlugin({parallel: true})
@@ -70,10 +79,15 @@ module.exports = (env) => {
             open: true,
             hot: true
         },
-        plugins: [new HtmlWebpackPlugin({
-            template: "public/index.html",
-            hash: true, // cache busting
-            filename: '../dist/index.html'
-        })]
+        plugins: [
+            new HtmlWebpackPlugin({
+                template: "public/index.html",
+                hash: true, // cache busting
+                filename: '../dist/index.html',
+            }),
+            new MiniCssExtractPlugin({
+                filename: '[name].css',
+            }),
+        ]
     }
 }
