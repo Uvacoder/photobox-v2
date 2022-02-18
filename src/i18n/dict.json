@@ -1,11 +1,19 @@
 {
   "hello": "Hello {{name}}",
+  "confirmation": {
+    "areYouSure": "Вы уверены?",
+    "cantUndone": "Действие невозможно будет оменить",
+    "yes": "Да",
+    "no": "Нет",
+    "cancel": "Отмена"
+  },
   "tile":{
     "copy": "Копировать"
   },
   "toolbar": {
     "imageQuantity": "Количество: {{number}}",
     "totalImages": "Фотографий: {{number}}",
-    "loadedImages": "Загружено изображений {{current}}/{{total}}"
+    "loadedImages": "Загружено изображений {{current}}/{{total}}",
+    "imageLoading": "Загрузка изображений"
   }
 }

@@ -55,7 +55,7 @@ const view = (props: IProps) => {
     }
 
     return (
-        <Show when={paginationData().totalPages > 0}>
+        <Show when={paginationData().totalPages > 1}>
             <ul class="pagination">
                 <li className={`page-item ${currentPage() <= 1 ? 'disabled' : ''}`}>
                     <a class="page-link" href="#" onClick={() => goToPage(currentPage() - 1)}>&laquo;</a>

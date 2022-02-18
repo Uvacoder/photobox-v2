@@ -1,7 +1,7 @@
 import {Component, createEffect, createSignal, onMount, Show} from "solid-js";
 import {Action} from "../../interface/command/Action";
 import Props from "../../interface/Props";
-import {Toast} from "bootstrap";
+import {Toast, Tooltip} from "bootstrap";
 import {Commands} from "../../constants/Commands";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {FrameType} from "../../constants/FrameType";
@@ -12,21 +12,29 @@ import State from "../../interface/State";
 import {t} from "../../i18n/i18n";
 import {Option} from "../../interface/options/Option";
 import {OptionItem} from "../../interface/options/OptionItem";
+import {HandledOptionResult} from "../../interface/options/HandledOptionResult";
+import OptionsHandler from "../../utils/OptionsHandler";
+import {PreselectedOption} from "../../interface/options/PreselectedOption";
 
-interface IProps extends Props {
-    click: (action: Action) => void
+export interface IProps extends Props {
+    click: (action: Action) => void,
+    optionChanged: () => void,
+    preselectedOptions?: PreselectedOption[];
 }
 
 export interface IState extends State {
     setImagesNumber: (arg1: number) => void,
-    setOptions: (options: Map<string, Option>) => void
+    setOptions: (options: Map<string, Option>) => void,
+    setPreselectedOptions: (options: PreselectedOption[]) => void,
+    setImageUploadProgress: (arg: number[]) => void,
 }
 
 
 const view: Component<IProps> = (props: IProps) => {
     let container: HTMLDivElement | undefined;
     const selectedOptionsMap = new Map<string, OptionItem>();
-    const optionsMap = new Map<string, Option>();
+    let tooltipList: Tooltip[] = [];
+    let frozenOptions: Map<string, Option> = new Map<string, Option>();
 
     const [imageMode, setImageMode] = createSignal(ImagePrintMode.CROP);
     const [detectPalette, setDetectPalette] = createSignal(false);
@@ -36,129 +44,49 @@ const view: Component<IProps> = (props: IProps) => {
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
     const [imagesNumber, setImagesNumber] = createSignal(2);
     const [options, setOptions] = createSignal(new Map<string, Option>());
+    const [preselectedOptions, setPreselectedOptions] = createSignal([] as PreselectedOption[]);
+    const [imageUploadProgress, setImageUploadProgress] = createSignal([0, 0]);
 
     const dispatch = (action: Action) => {
         props.click(action);
-        //subscribe();
     }
 
     const changeOption = (event: HTMLInputElement, optionId: string, valueId: string) => {
 
-        const newOptions = new Map(options());
-
-        // reset all disabled options
-        newOptions.forEach(option => {
-            option.option_values_map.forEach(value => {
-                value.disabled = false;
-            })
-        })
-
-
-        const option = newOptions.get(optionId);
-        if (!option || !option.option_values_map) {
+        const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
+        if(!handledOption){
             return;
         }
-
-        // unselect all variants of option
-        option.option_values_map.forEach((item) => {
-            item.selected = false;
-        });
-
-        const affectedOption = option.option_values_map.get(valueId);
-        if (!affectedOption) {
-            return;
-        }
-        option.selected_name = affectedOption.name;
-        affectedOption.selected = event.checked;
+        updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
+        setOptions(handledOption.updatedOptions);
+        props.optionChanged();
+    }
 
 
-        selectedOptionsMap.set(optionId, affectedOption);
-        if (!affectedOption.selected) {
-            selectedOptionsMap.delete(optionId);
-            option.selected_name = null;
-        }
-        selectedOptionsMap.forEach(sop => {
-            sop.relation_options.map(ro => {
-                if (!newOptions.get(ro.option_id)) {
-                    return;
-                }
-                // @ts-ignore
-                newOptions.get(ro.option_id).option_values_map.forEach(ovm => {
-                    if (!ro.option_value_id.includes(ovm.option_value_id)) {
-                        ovm.disabled = true;
-                    }
-                })
-            })
-        })
 
-
-        console.log(selectedOptionsMap);
-        //setOptions(new Map<string, Option>());
-        setOptions(newOptions);
-
-        if(option.label === "framing"){
-            const mode = event.checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
+    const updateView = ( option: Option, checked: boolean, affectedOption: OptionItem) => {
+        if (option.label === "framing") {
+            const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
             dispatch({
                 type: Commands.CHANGE_IMAGE_PRINT_MODE,
                 payload: mode
             });
             setImageMode(mode);
-        }else if(option.label === FrameType.FRAME_OPTION_LABEL){
-            const frame = event.checked ? affectedOption.label as FrameType : FrameType.NONE;
+        } else if (option.label === FrameType.FRAME_OPTION_LABEL) {
+            const frame = checked ? affectedOption.label as FrameType : FrameType.NONE;
             setFrameType(frame);
             dispatch({
                 type: Commands.CHANGE_FRAME,
                 payload: {frame: frame}
             })
-        }else if(option.label === "size"){
+        } else if (option.label === "size") {
             dispatch({
                 type: Commands.CHANGE_SIZE,
                 payload: affectedOption.value
             })
         }
-        /*const relatedOptions: OptionItemRelation[] = [];//getRelatedOptionsForSelectedOption(optionId, valueId);
-        newOptions.map((option: Option) => {
-            if(option.option_id != optionId){
-                return;
-            }
-            option.option_values.map((optionValue: OptionItem) => {
-                if(optionValue.option_value_id == valueId){
-                    optionValue.selected = event.checked;
-                }
-            });
-        })
-
-        relatedOptions.map(relatedOption => {
-            const option = newOptions.filter(o => o.option_id == relatedOption.option_id)[0];
-            if(!option){
-                return;
-            }
-           // const value = option.option_values.filter(v => !relatedOption.option_value_id.includes(v.option_value_id))[0];
-
-            option.option_values.map(value => {
-                if(!relatedOption.option_value_id.includes(value.option_value_id)){
-                    value.disabled = true;
-                    value.name = "updated";
-                }
-            })
-
-           // console.log(option);
-        });*/
-        // console.log(newOptions);
-        //setOptions(newOptions);
     }
 
-    /*   const getRelatedOptionsForSelectedOption = (optionId: string, valueId: string): OptionItemRelation[] => {
-           const tmpOptions: Option[] = options();
-           const relatedOptions = tmpOptions.filter(o => o.option_id == optionId)[0].option_values.filter(v => v.option_value_id == valueId)[0].relation_options;
-           //console.log(relatedOptions);
-           const result = relatedOptions.reduce(function(map: any, obj) {
-               map[obj.option_id] = obj.option_value_id;
-               return map;
-           }, {});
-           //console.log(result);
-           return relatedOptions;
-       }*/
 
     const resetOption = (optionId: string) => {
         const newOptions = new Map(options());
@@ -192,15 +120,36 @@ const view: Component<IProps> = (props: IProps) => {
 
     const state = {
         setImagesNumber,
-        setOptions
+        setOptions,
+        setImageUploadProgress,
+        setPreselectedOptions
     }
 
     createEffect(() => {
+
+        preselectedOptions().map(preselectedOption => {
+            const handledOption = OptionsHandler.handleOptionChange(frozenOptions, selectedOptionsMap, true,
+                preselectedOption.option_id.toString(), preselectedOption.option_value_id);
+            if(!handledOption){
+                console.log("!handledOption");
+                return;
+            }
+            updateView(handledOption.affectedOption, true, handledOption.affectedOptionItem);
+            setOptions(handledOption.updatedOptions);
+            props.optionChanged();
+        })
+    });
+
+    createEffect(() => {
         // console.log(options());
-        const tooltipTriggerList = [].slice.call(container!.querySelectorAll('[data-bs-tooltip="tooltip"]'))
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            //return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
+        //options();
+        frozenOptions = new Map(options());
+        const tooltipTriggerList = [].slice.call(container!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
+        tooltipList.map(tooltip => tooltip.dispose());
+        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
         });
+       // console.log(tooltipList);
     })
 
     onMount(function () {
@@ -219,19 +168,29 @@ const view: Component<IProps> = (props: IProps) => {
         var toast = new Toast(document.getElementById('liveToast') as Element).show();
 
 
+
     })
+
+    const openUploadWindow = () => {
+        dispatch({type: Commands.OPEN_UPLOAD_WINDOW});
+    }
+    const onMakeOrder = () => {
+        dispatch({type: Commands.MAKE_ORDER});
+    }
 
     const deleteAllPhotos = () => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            title: t('confirmation.areYouSure'),
+            text: t('confirmation.cantUndone'),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: t('confirmation.yes'),
+            cancelButtonText: t('confirmation.no')
         }).then((result) => {
             if (result.isConfirmed) {
+                dispatch({type: Commands.DELETE_ALL_IMAGES})
             }
         })
     }
@@ -275,13 +234,23 @@ const view: Component<IProps> = (props: IProps) => {
                         {t('toolbar.totalImages', {number: imagesNumber()})}
                     </p>
                 </div>
-                <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" data-bs-tooltip="tooltip" style={{cursor: 'pointer'}}
-                     title={t('toolbar.loadedImages', {current: 50, total: 65})} data-bs-placement="right">
-                    <div className="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                             aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"/>
+
+                {imageUploadProgress()[0] &&
+                    <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" data-bs-tooltip="tooltip" style={{cursor: 'pointer'}}
+                         onClick={openUploadWindow}
+                         title={t('toolbar.imageLoading')} data-bs-placement="right">
+                        {t('toolbar.imageLoading')}:
+                        <div className="progress" style="height: 15px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 aria-valuenow={imageUploadProgress()[0]}
+                                 aria-valuemin="0"
+                                 aria-valuemax={imageUploadProgress()[1]}
+                                 style={{width: `${imageUploadProgress()[1] / 100 * imageUploadProgress()[0]}%`, "font-size": "13px"}}>
+                                {Math.ceil(imageUploadProgress()[1] / 100 * imageUploadProgress()[0])}%
+                            </div>
+                        </div>
                     </div>
-                </div>
+                }
                 {Array.from(options().values()).map((option: Option) =>
                     <div class="row gx-5 mt-1">
                         <div class="col">
@@ -292,18 +261,20 @@ const view: Component<IProps> = (props: IProps) => {
                                     <span style={{"max-width": "100px"}} class="option-dropdown-title">
                                         {option.selected_name || option.name}
                                     </span>
-                                    <span data-bs-tooltip="tooltip" title={option.description}
-                                          data-bs-placement="right">
-                                        &nbsp; <BsInfoSquare size="1.2em"/>
+                                    {option.description &&
+                                        <span data-bs-tooltip="tooltip" title={option.description}
+                                              data-bs-placement="right">&nbsp; <BsInfoSquare size="1.2em"/>
                                     </span>
+                                    }
                                 </button>
                                 <ul class="dropdown-menu">
                                     {Array.from(option.option_values_map.values()).map((optionValue: OptionItem) =>
-                                        <li data-bs-tooltip="tooltip" title={optionValue.description}
-                                            data-bs-placement="right">
+                                        <li data-bs-tooltip="tooltip"
+                                            title={optionValue.conflictedOptions ? `Конфликт опций: <br/>${optionValue.conflictedOptions.join(",<br/>")}` : optionValue.description}
+                                            data-bs-placement="right" data-bs-html={"true"}
+                                            data-bs-custom-class={`${optionValue.conflictedOptions ? 'warning-tooltip' : 'tooltip'}`}>
                                             <label class={`dropdown-item ${optionValue.disabled ? 'disabled' : ''}`}
-                                                   for={`option-${optionValue.option_value_id}`}
-                                            >
+                                                   for={`option-${optionValue.option_value_id}`}>
                                                 <input class="form-check-input m-1" type="checkbox"
                                                        name={`group-${option.option_id}`}
                                                        disabled={optionValue.disabled} checked={optionValue.selected}
@@ -371,9 +342,8 @@ const view: Component<IProps> = (props: IProps) => {
                             <div class="form-">
                                 <label for="frameColor" class="form-label">Размер({frameThickness}мм)</label>
                                 <input type="range" class="form-range" onInput={(data) => {
-                                    // @ts-ignore
-                                    const value = data.target.value;
-                                    setFrameThickness(value);
+                                    const value = (data.target as HTMLInputElement).value;
+                                    setFrameThickness(parseInt(value));
                                     dispatch({type: Commands.CHANGE_FRAME, payload: {thickness: parseInt(value)}})
                                 }} min="0" max="15" step="1" value={frameThickness()} id="frameColor"/>
                             </div>
@@ -383,14 +353,13 @@ const view: Component<IProps> = (props: IProps) => {
 
                 <div class="row gx-5 mb-5 mt-1">
                     <div class="col">
-                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>Удалить все
-                        </button>
+                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>Удалить все</button>
                     </div>
                 </div>
 
                 <div class="row gx-5 mt-1">
                     <div class="col">
-                        <button type="button" class="btn btn-success w-100">Заказать</button>
+                        <button type="button" class="btn btn-success w-100" onClick={onMakeOrder}>Заказать</button>
                     </div>
                 </div>
 

@@ -106,6 +106,12 @@ export default class Viewport extends BaseView<any, any> implements Observable {
         this.notifyImagesChanged();
     }
 
+    public deleteAllImages(){
+        this.images = [];
+        this.renderImages(0, 0);
+        this.notifyImagesChanged();
+    }
+
     private isLastPageWithEmptySlots(): boolean {
         if (!this.paginationData) {
             return false;

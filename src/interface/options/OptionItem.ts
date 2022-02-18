@@ -9,6 +9,7 @@ export interface OptionItem{
     label: string; // option label, is used to determine option behavior
     disabled: boolean | undefined, // specify if option is disabled(is conflicted)
     selected: boolean | undefined, // specify if option is selected
+    conflictedOptions: string[] | null, // list of options which conflicts with current
     relation_options: OptionItemRelation[]; // list of allowed option
     value: string[] | string | null; // can contain payload for internal mechanism
 }

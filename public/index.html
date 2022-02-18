@@ -79,12 +79,20 @@
             height: 150px;
         }
 
-        .option-dropdown-title{
+        .option-dropdown-title {
             max-width: 139px;
             display: inline-block;
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: top;
+        }
+
+        .warning-tooltip.tooltip > .tooltip-inner {
+            background-color: #a44213;
+        }
+
+        .warning-tooltip.tooltip > .tooltip-arrow::before {
+            border-right-color: #a44213;
         }
     </style>
 </head>
@@ -931,8 +939,30 @@
     ];
 
     setTimeout(() => {
-        photobox = new PhotoBox(options, (e) => {
-           // console.log(e);
+        photobox = new PhotoBox({
+            container: 'root',
+            options: options,
+            preselectedOptions: [
+                {
+                    "option_id": 11,
+                    "option_value_id": "23",
+                },
+                {
+                    "option_id": 9,
+                    "option_value_id": "353",
+                },
+                {
+                    "option_id": 79,
+                    "option_value_id": "329",
+                },
+                {
+                    "option_id": 82,
+                    "option_value_id": "341",
+                }
+            ]
+        }, (e) => {
+            // console.log(e);
+            console.log('onInit');
             e.addImages(
                 [
                     {
@@ -958,14 +988,36 @@
                         "zoom": 0
                     }
                 ]
-            )
+            );
+
+            //e.clear()
         });
 
-        photobox.onInit = function (){
+        photobox.onInit = function () {
             console.log('onInitGlob');
 
         }
-    }, 500);
+
+        photobox.onDeleteAllPhotos(function () {
+            console.log('onDeleteAllPhotos');
+        });
+
+        /*let progress = 1;
+        setInterval(() => {
+            photobox.updateImageUploadProgress(++progress, 60);
+        }, 500)*/
+
+        photobox.onMakeOrder((data) => {
+            console.log(data);
+        });
+        photobox.onOpenUploadWindow(() => {
+            alert("open window");
+        })
+        photobox.onPropertiesChanged((data) => {
+            console.log('onPropertiesChanged');
+            console.log(data);
+        });
+    }, 1000);
 </script>
 </body>
 </html>

@@ -22,50 +22,54 @@ import dict from "./i18n/dict.json";
 import i18next, {TFunction} from "i18next";
 import {ApplicationBase} from "./interface/ApplicationBase";
 import {Option} from "./interface/options/Option";
+import {PhotoBoxParameters} from "./interface/PhotoBoxParameters";
+import DeleteAllImagesCommand from "./commands/DeleteAllImagesCommand";
+import OpenUploadWindowCommand from "./commands/OpenUploadWindowCommand";
+import MakeOrderCommand from "./commands/MakeOrderCommand";
+import PropertyChangedCommand from "./commands/PropertyChangedCommand";
 
-export default class Application implements ApplicationBase{
+export default class Application {
     private container = document.getElementById('root');
     private viewport!: Viewport;
     private pagination!: Pagination;
     private toolbar!: Toolbar;
     public static CONFIG: Config;
     public static INVOKER = new Invoker();
-    public onInitGlob: (() => void)  | undefined;
+    public onInit: (() => void)  | undefined;
     private options: Option[];
+    public parameters: PhotoBoxParameters;
 
-    constructor(options: Option[], onInitGlob: (() => void)  | undefined) {
+    constructor(parameters: PhotoBoxParameters) {
         Application.CONFIG = {
             imagesPerPage: 10
         }
-        this.options = options;
-
-        this.onInitGlob = onInitGlob;
-
+        this.parameters = parameters;
+        this.options = parameters.options;
     }
 
     public async init(){
         await this.initI18N();
         await this.createSkeleton();
 
-        this.toolbar = await new Toolbar(document.getElementById("sidebar-container"));
+        this.toolbar = await new Toolbar(document.getElementById("sidebar-container"), this.parameters.preselectedOptions);
         this.viewport = await new Viewport(document.getElementById("viewport-container"));
         this.pagination = await new Pagination(document.getElementById("pagination-container"));
 
         this.pagination.registerViewport(this.viewport);
         this.viewport.subscribe(this.toolbar);
-        this.toolbar.setOptions(this.options);
+        this.toolbar.setOptions(this.options, this.parameters.preselectedOptions);
 
         this.registerCommands();
         this.registerListeners();
 
-        setTimeout(() => {
-            this.addImages();
-
-        }, 100);
     }
 
     public getViewport() {
         return this.viewport;
+    }
+
+    public updateImageUploadProgress(loaded: number, total: number){
+        this.toolbar.updateImageUploadProgress(loaded, total);
     }
 
     private addElementTo(element: BaseView, container?: HTMLElement | null) {
@@ -78,13 +82,8 @@ export default class Application implements ApplicationBase{
         console.log('Main mounted');
     }
 
-
-    onInit(): Promise<any> {
-        return Promise.resolve(undefined);
-    }
-
     private createSkeleton() {
-        render(() => view({onMount: this.onMount}), this.container || document.body);
+        render(() => view({onMount: this.onMount}), document.getElementById(this.parameters.container) || document.body);
     }
 
     private initI18N(): Promise<TFunction>{
@@ -115,7 +114,10 @@ export default class Application implements ApplicationBase{
         Application.INVOKER.register(Commands.AUTO_DETECT_FRAME, new DetectBestFrameCommand(this));
         Application.INVOKER.register(Commands.CHANGE_FRAME, new ChangeFrameCommand(this));
         Application.INVOKER.register(Commands.CLONE_TILE, new CloneTileCommand(this));
-        Application.INVOKER.register(Commands.DELETE_TILE, new DeleteTileCommand(this));
+        Application.INVOKER.register(Commands.DELETE_ALL_IMAGES, new DeleteAllImagesCommand(this));
+        Application.INVOKER.register(Commands.OPEN_UPLOAD_WINDOW, new OpenUploadWindowCommand(this));
+        Application.INVOKER.register(Commands.PROPERTY_CHANGED, new PropertyChangedCommand(this));
+        Application.INVOKER.register(Commands.MAKE_ORDER, new MakeOrderCommand(this));
     }
 
     private registerListeners() {
