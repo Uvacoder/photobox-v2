@@ -1,4 +1,5 @@
 import {ImagePrintMode} from "../constants/ImagePrintMode";
+import {Option} from "./options/Option";
 
 export interface ImageParameters {
 
@@ -19,6 +20,7 @@ export interface ImageParameters {
     rotate?: number,
     copies?: number,
     detectAndFillWithGradient?: boolean,
+    options?: Map<string, Option>,
     colorAdjustment?: {
         hue?: number,
         brightness?: number,

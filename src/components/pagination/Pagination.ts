@@ -10,7 +10,6 @@ export default class Pagination extends BaseView<IProps, IState> {
     private viewState: IState | null = null;
     private totalItems: number = 0;
     private currentPage: number = 1;
-    private itemsPerPage = 10;
     private viewport?: Viewport;
 
     constructor(container?: HTMLElement | null, totalItems?: number) {
@@ -35,11 +34,11 @@ export default class Pagination extends BaseView<IProps, IState> {
         if (totalItems != undefined) {
             this.totalItems = totalItems;
         }
-        const result = pagination(this.totalItems, this.currentPage, this.itemsPerPage);
+        const result = pagination(this.totalItems, this.currentPage, Application.CONFIG.imagesPerPage);
         this.viewState?.setPaginationData(result);
        // this.viewport!.startIndex = result.startIndex;
        // this.viewport!.endIndex = result.endIndex;
-        if (this.viewport && this.currentPage == 1 && this.viewport.getImagesNumber() < this.itemsPerPage) {
+        if (this.viewport && this.currentPage == 1 && this.viewport.getImagesNumber() < Application.CONFIG.imagesPerPage) {
             //this.viewport.renderImages(result.startIndex, result.endIndex);
         }
         if(this.viewport){

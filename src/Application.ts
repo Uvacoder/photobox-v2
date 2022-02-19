@@ -41,7 +41,7 @@ export default class Application {
 
     constructor(parameters: PhotoBoxParameters) {
         Application.CONFIG = {
-            imagesPerPage: 10
+            imagesPerPage: 14
         }
         this.parameters = parameters;
         this.options = parameters.options;
@@ -52,7 +52,7 @@ export default class Application {
         await this.createSkeleton();
 
         this.toolbar = await new Toolbar(document.getElementById("sidebar-container"), this.parameters.preselectedOptions);
-        this.viewport = await new Viewport(document.getElementById("viewport-container"));
+        this.viewport = await new Viewport(document.getElementById("viewport-container"), this.parameters);
         this.pagination = await new Pagination(document.getElementById("pagination-container"));
 
         this.pagination.registerViewport(this.viewport);
@@ -139,412 +139,29 @@ export default class Application {
                     localStorage.setItem('sb|sidebar-toggle', `${document.body.classList.contains('sb-sidenav-toggled')}`);
                 });
             }
-
         });
+
+        const that = this;
+/*        window.onbeforeunload =  function ()  {
+            const serializedImages = localStorage.getItem("images");
+            let savedImages = [];
+            if(serializedImages){
+                savedImages = JSON.parse(serializedImages);
+            }
+            savedImages = [...that.getViewport().images, savedImages];
+            localStorage.setItem("images", JSON.stringify(savedImages));
+            return 'Are you really want to perform the action?';
+        }*/
     }
 
-    public addImages1(images: any[]){
-        console.log('addImages1', images.length);
-
-        for (let i = 0; i <= images.length - 1; i++) {
-            this.viewport.addImage(images[i].url, /*state[i] as ImageState*/);
+    public addImages(images: any[]){
+        images.map(image => {
+            this.viewport.addImage(image.url, /*state[i] as ImageState*/);
             this.pagination.updatePaginationData(this.viewport.getImagesNumber());
-        }
-        console.log(this.viewport.getImagesNumber());
-    }
+        });
 
-    private addImages() {
-        return;
-        const state = [
-            {
-                "url": "./img/1.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/2.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/3.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/4.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/5.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/6.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/7.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/8.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/9.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/10.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/11.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/12.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/13.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/14.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/15.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/16.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/17.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/18.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/19.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/20.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/21.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/22.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/23.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/24.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/25.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/26.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/27.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/28.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/29.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/30.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/31.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/32.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            },
-            {
-                "url": "./img/33.jpg",
-                "size": {
-                    "w": 9,
-                    "h": 13
-                },
-                "cropData": null,
-                "imagePrintMode": 0,
-                "quantity": 1,
-                "zoom": 0
-            }
-        ];
-
-        for (let i = 0; i <= state.length - 5; i++) {
-            this.viewport.addImage(state[i].url, /*state[i] as ImageState*/);
-        }
-        this.pagination.updatePaginationData(this.viewport.getImagesNumber());
-        let images2 = [
-            {
-                url: './1.jpg'
-            },
-            {
-                url: './1 gBQxShAkxBp_YPb14CN0Nw.jpeg'
-            },
-            {
-                url: './glossy_10x15ebb90f7646c43797e8a00f0ac1f4a233.jpeg'
-            },
-        ];
-
-        setTimeout(() => {
-            for (let i = 0; i <= 2; i++) {
-                this.viewport.addImage(`${images2[i].url}`);
-                this.pagination.updatePaginationData(this.viewport.getImagesNumber());
-            }
-
-        }, 5000);
 
     }
+
 
 }

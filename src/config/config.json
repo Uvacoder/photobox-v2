@@ -1,0 +1,17 @@
+{
+  "imagesPerPage": 14,
+  "sizeQualityMap": {
+    "102x152": {
+      "minWidth": 400,
+      "minHeight": 500
+    },
+    "152x203": {
+      "minWidth": 500,
+      "minHeight": 600
+    },
+    "152x152": {
+      "minWidth": 500,
+      "minHeight": 500
+    }
+  }
+}

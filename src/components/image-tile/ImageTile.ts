@@ -8,11 +8,12 @@ import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import Viewport from "../viewport/Viewport";
 import {ImageParameters} from "../../interface/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
-import CropEndEvent = Cropper.CropEndEvent;
-import SetDataOptions = Cropper.SetDataOptions;
 import Application from "../../Application";
 import {Commands} from "../../constants/Commands";
-import {v4 as uuidv4} from 'uuid';
+import {v4 as uuidv4} from "uuid";
+import config from "../../config/config.json";
+import CropEndEvent = Cropper.CropEndEvent;
+import SetDataOptions = Cropper.SetDataOptions;
 
 export class ImageTile extends BaseView<IProps, IState> {
     private thumbnail: string = "";
@@ -47,6 +48,21 @@ export class ImageTile extends BaseView<IProps, IState> {
 
     }
 
+
+    onMountView(state: IState) {
+        this.viewState = state;
+        this.isMounted = true;
+        this.image = this.getImage();
+        // @ts-ignore
+        this.image.onload = () => {
+            this.setMode(this.imageParameters.imagePrintMode)
+        }
+        console.log(this.imageParameters.options);
+        if(this.imageParameters.options){
+            this.viewState?.setOptions(this.imageParameters.options);
+        }
+    }
+
     render(state?: ImageParameters, container?: HTMLElement) {
         if (state) {
             this.imageParameters = {...this.imageParameters, ...state}
@@ -54,6 +70,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (!this.isMounted) {
             const props: IProps = {
                 src: this.thumbnail,
+                uid: this.uuid,
                 setFrameColor: this.setFrameColor.bind(this),
                 setFrameWeight: this.setFrameWeight.bind(this),
                 setFrameType: this.setFrameType.bind(this),
@@ -62,6 +79,7 @@ export class ImageTile extends BaseView<IProps, IState> {
             };
             this.mountView(view, props);
         }
+
 
 
         if (container) {
@@ -80,17 +98,6 @@ export class ImageTile extends BaseView<IProps, IState> {
 
     deleteTile(){
         Application.INVOKER.execute({type: Commands.DELETE_TILE, payload: this.uuid});
-    }
-
-
-    onMountView(state: IState) {
-        this.viewState = state;
-        this.isMounted = true;
-        this.image = this.getImage();
-        // @ts-ignore
-        this.image.onload = () => {
-            this.setMode(this.imageParameters.imagePrintMode)
-        }
     }
 
     /**
@@ -114,7 +121,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (this.imageParameters.imagePrintMode == ImagePrintMode.CROP) {
             this.switchToCropperMode();
         } else {
-            this.switchToSimpleMode();
+            this.switchToFullImageMode();
         }
     }
 
@@ -144,18 +151,24 @@ export class ImageTile extends BaseView<IProps, IState> {
                 },
                 zoom(event) {
                     that.imageParameters.zoom = event.detail.ratio;
-                    // that.cropData = cropper.getData();
+                    that.imageParameters.cropData = cropper.getData();
+                    that.checkQuality();
                 },
                 cropend(event: CropEndEvent) {
                     that.imageParameters.cropData = cropper.getData();
+                    that.checkQuality();
                 },
                 ready() {
                     //that.detectBestFrame.call(that, this as CanvasImageSource, cropper)
                     that.viewState?.setLoaded(true);
-                    if (that.imageParameters.zoom)
+                    if (that.imageParameters.zoom){
                         cropper.zoomTo(that.imageParameters.zoom || 0);
-                    if (that.imageParameters.cropData)
+                    }
+                    if (that.imageParameters.cropData){
                         cropper.setData(that.imageParameters.cropData as SetDataOptions || null);
+                    }else{
+                        that.imageParameters.cropData = cropper.getData();
+                    }
                     that.updateCropper();
                 }
             });
@@ -166,7 +179,34 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
     }
 
-    private switchToSimpleMode() {
+    private checkQuality(){
+        this.viewState?.setBadPhotoQuality(false);
+        const size = this.imageParameters.size;
+        // @ts-ignore
+        const minRequiredSize = config.sizeQualityMap[`${size.width}x${size.height}`];
+        if(!minRequiredSize){
+            return;
+        }
+
+        if(this.imageParameters.imagePrintMode === ImagePrintMode.CROP){
+            if(!this.imageParameters.cropData){
+                return;
+            }
+            if(this.imageParameters.cropData?.width < minRequiredSize.minWidth || this.imageParameters.cropData?.height < minRequiredSize.minHeight){
+                this.viewState?.setBadPhotoQuality(true);
+            }
+        }else{
+            const imageSize = {
+                width: this.getImage().naturalWidth,
+                height: this.getImage().naturalHeight
+            }
+            if(imageSize.width < minRequiredSize.minWidth || imageSize.height < minRequiredSize.minHeight){
+                this.viewState?.setBadPhotoQuality(true);
+            }
+        }
+    }
+
+    private switchToFullImageMode() {
         //this.cropper?.destroy();
         // @ts-ignore
         this.cropper?.cropper.style.display = "none";
@@ -196,6 +236,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         this.viewState?.setLoaded(true);
         this.detectColorPalette(this.imageParameters.detectAndFillWithGradient || false);
         //this.getContainer().style.display = "none";
+        this.checkQuality();
     }
 
     public updateCropper() {
@@ -211,8 +252,8 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
         // @ts-ignore
         this.cropper?.resize();
-        // this.detectBestFrame();
-
+        this.imageParameters.cropData = this.cropper?.getData();
+        this.checkQuality();
     }
 
     public setZoom() {

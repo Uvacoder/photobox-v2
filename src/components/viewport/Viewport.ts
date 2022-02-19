@@ -5,6 +5,8 @@ import {ImageParameters} from "../../interface/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
 import Application from "../../Application";
 import {Pagination as PaginationData} from "../../interface/Pagination";
+import {PhotoBoxParameters} from "../../interface/PhotoBoxParameters";
+import OptionsHandler from "../../utils/OptionsHandler";
 
 export default class Viewport extends BaseView<any, any> implements Observable {
     public images: ImageTile[] = [];
@@ -14,6 +16,7 @@ export default class Viewport extends BaseView<any, any> implements Observable {
     private zoomStep: number = .05;
     public static initialSize: number = 200;
     private observers: Set<Observer>;
+    private parameters?: PhotoBoxParameters;
 
     private paginationData?: PaginationData;
     private globalOptions: ImageParameters = {
@@ -31,9 +34,13 @@ export default class Viewport extends BaseView<any, any> implements Observable {
         }
     };
 
-    constructor(container?: HTMLElement | null) {
+    constructor(container?: HTMLElement | null, parameters?: PhotoBoxParameters) {
         super(container);
-        this.observers = new Set()
+        this.observers = new Set();
+        this.parameters = parameters;
+        if(parameters?.options){
+            this.globalOptions.options = OptionsHandler.toMap(parameters?.options);
+        }
     }
 
     subscribe(observer: Observer): void {

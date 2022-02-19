@@ -94,6 +94,38 @@
         .warning-tooltip.tooltip > .tooltip-arrow::before {
             border-right-color: #a44213;
         }
+
+        .quality-warning-icon{
+            overflow: visible;
+            color: rgb(234, 128, 1);
+            position: absolute;
+            top: 8px;
+            margin: auto;
+            left: 0;
+            right: 0;
+            z-index: 9;
+        }
+
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .accordion-item{
+            position: relative;
+        }
+        .accordion-item .accordion-collapse{
+            position: absolute;
+            top: 35px;
+            width: 100%;
+            z-index: 9;
+        }
     </style>
 </head>
 <body>
@@ -993,6 +1025,24 @@
             //e.clear()
         });
 
+     /*   setTimeout(() => {
+            for(let i = 1; i <= 33; i++){
+                photobox.addImages([
+                    {
+                        "url": `./img/${i}.jpg`,
+                        "size": {
+                            "w": 9,
+                            "h": 13
+                        },
+                        "cropData": null,
+                        "imagePrintMode": 0,
+                        "quantity": 1,
+                        "zoom": 0
+                    }
+                ])
+            }
+        }, 1000);*/
+
         photobox.onInit = function () {
             console.log('onInitGlob');
 
@@ -1000,6 +1050,7 @@
 
         photobox.onDeleteAllPhotos(function () {
             console.log('onDeleteAllPhotos');
+            localStorage.removeItem("images");
         });
 
         /*let progress = 1;

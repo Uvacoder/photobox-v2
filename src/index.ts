@@ -15,6 +15,11 @@ export default class PhotoBox {
         this.parameters = parameters;
         this.application.init().then(() => {
             onStart(this);
+            const serializedImages = localStorage.getItem("images");
+            if(serializedImages){
+                console.log(JSON.parse(serializedImages));
+                this.addImages(JSON.parse(serializedImages));
+            }
         });
     }
 
@@ -23,7 +28,7 @@ export default class PhotoBox {
      * @param images list of images
      */
     public addImages(images: any[]) {
-        this.application.addImages1(images)
+        this.application.addImages(images)
     }
 
     /**
