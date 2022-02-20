@@ -14,7 +14,7 @@ export default class MakeOrderCommand implements Command {
             this.app.parameters.onMakeOrderCallback({
                 options: this.app.parameters.options,
                 extra: 'extra',
-                photos: []
+                photos: this.app.getViewport().serializeState()
             });
         }
     }

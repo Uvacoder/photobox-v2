@@ -28,7 +28,7 @@ export default class Viewport extends BaseView<any, any> implements Observable {
             thumbnail: "",
             full: ""
         },
-        border: {
+        frame: {
             thickness: 0,
             color: "#ffffff"
         }
@@ -194,20 +194,21 @@ export default class Viewport extends BaseView<any, any> implements Observable {
     }
 
     public setBorderWeight(thickness: number) {
-        this.globalOptions.border!.thickness = thickness;
+        this.globalOptions.frame!.thickness = thickness;
         this.getCurrentPageImages().forEach(image => {
             image.setFrameWeight(thickness);
         });
     }
 
     public setBorderColor(color: string) {
-        this.globalOptions.border!.color = color;
+        this.globalOptions.frame!.color = color;
         this.getCurrentPageImages().forEach(image => {
             image.setFrameColor(color);
         });
     }
 
     public setFrameType(type: FrameType) {
+        this.globalOptions.frame!.type = type;
         this.getCurrentPageImages().forEach(image => {
             image.setFrameType(type);
         });

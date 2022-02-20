@@ -1,5 +1,7 @@
 {
   "imagesPerPage": 14,
+  "defaultFrameColor": "#ffffff",
+  "defaultFrameWeight": 5,
   "sizeQualityMap": {
     "102x152": {
       "minWidth": 400,

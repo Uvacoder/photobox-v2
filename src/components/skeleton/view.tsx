@@ -1,5 +1,5 @@
 import {createEffect, createSignal, onMount, Signal} from "solid-js";
-import type {Component} from 'solid-js';
+import '@simonwep/pickr/dist/themes/nano.min.css';
 import {h} from "tsx-dom";
 import Props from "../../interface/Props";
 import State from "../../interface/State";
@@ -43,6 +43,7 @@ const view = (props: IProps) => {
     // @ts-ignore
     return (
         <div class="d-flex" id="wrapper">
+            <div class="color-picker"/>
             <div class="border-end bg-white" id="sidebar-wrapper">
                 <div class="sidebar-heading border-bottom bg-light">PHOTOBOX V2</div>
 

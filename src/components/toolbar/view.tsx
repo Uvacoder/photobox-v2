@@ -15,6 +15,8 @@ import {OptionItem} from "../../interface/options/OptionItem";
 import {HandledOptionResult} from "../../interface/options/HandledOptionResult";
 import OptionsHandler from "../../utils/OptionsHandler";
 import {PreselectedOption} from "../../interface/options/PreselectedOption";
+import Pickr from "@simonwep/pickr";
+import config from "../../config/config.json";
 
 export interface IProps extends Props {
     click: (action: Action) => void,
@@ -39,7 +41,7 @@ const view: Component<IProps> = (props: IProps) => {
     const [imageMode, setImageMode] = createSignal(ImagePrintMode.CROP);
     const [detectPalette, setDetectPalette] = createSignal(false);
     const [detectBestFrame, setDetectBestFrame] = createSignal(true);
-    const [frameThickness, setFrameThickness] = createSignal(0);
+    const [frameThickness, setFrameThickness] = createSignal(config.defaultFrameWeight);
     const [frameColor, setFrameColor] = createSignal('#ffffff');
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
     const [imagesNumber, setImagesNumber] = createSignal(2);
@@ -54,7 +56,7 @@ const view: Component<IProps> = (props: IProps) => {
     const changeOption = (event: HTMLInputElement, optionId: string, valueId: string) => {
 
         const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
-        if(!handledOption){
+        if (!handledOption) {
             return;
         }
         updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
@@ -63,8 +65,7 @@ const view: Component<IProps> = (props: IProps) => {
     }
 
 
-
-    const updateView = ( option: Option, checked: boolean, affectedOption: OptionItem) => {
+    const updateView = (option: Option, checked: boolean, affectedOption: OptionItem) => {
         if (option.label === "framing") {
             const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
             dispatch({
@@ -92,7 +93,7 @@ const view: Component<IProps> = (props: IProps) => {
         const newOptions = new Map(options());
 
         const option = newOptions.get(optionId);
-        if(!option){
+        if (!option) {
             return;
         }
         option.selected_name = null;
@@ -130,7 +131,7 @@ const view: Component<IProps> = (props: IProps) => {
         preselectedOptions().map(preselectedOption => {
             const handledOption = OptionsHandler.handleOptionChange(frozenOptions, selectedOptionsMap, true,
                 preselectedOption.option_id.toString(), preselectedOption.option_value_id);
-            if(!handledOption){
+            if (!handledOption) {
                 console.log("!handledOption");
                 return;
             }
@@ -149,7 +150,7 @@ const view: Component<IProps> = (props: IProps) => {
         tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
         });
-       // console.log(tooltipList);
+        // console.log(tooltipList);
     })
 
     onMount(function () {
@@ -168,7 +169,6 @@ const view: Component<IProps> = (props: IProps) => {
         var toast = new Toast(document.getElementById('liveToast') as Element).show();
 
 
-
     })
 
     const openUploadWindow = () => {
@@ -176,6 +176,58 @@ const view: Component<IProps> = (props: IProps) => {
     }
     const onMakeOrder = () => {
         dispatch({type: Commands.MAKE_ORDER});
+    }
+
+    createEffect(() => {
+        frameType();
+        createColorPicker("toolbar-color-picker");
+    })
+
+    const createColorPicker = (el: string) => {
+
+        if (!document.getElementById(el)) {
+            return;
+        }
+        console.log(document.getElementById(el));
+        //const container = document.createElement("div");
+        // container.className = "color-picker";
+        //document.append(container);
+        const pickr = Pickr.create({
+            el: `#${el}`,//'.color-picker',
+            theme: 'nano', // or 'monolith', or 'nano'
+            container: 'body',
+            default: config.defaultFrameColor,
+            swatches: [
+                'rgba(244, 67, 54, 1)',
+                'rgba(233, 30, 99, 1)',
+                'rgba(156, 39, 176, 1)',
+                'rgba(103, 58, 183, 1)',
+                'rgba(63, 81, 181, 1)',
+                'rgba(33, 150, 243, 1)',
+                'rgba(3, 169, 244, 1)',
+                'rgba(0, 188, 212, 1)',
+                'rgba(0, 150, 136, 1)',
+                'rgba(76, 175, 80, 1)',
+                'rgba(139, 195, 74, 1)',
+                'rgba(205, 220, 57, 1)',
+                'rgba(255, 235, 59, 1)',
+                'rgba(255, 193, 7, 1)'
+            ],
+            components: {
+                // Main components
+                preview: true,
+                opacity: false,
+                hue: true,
+
+            }
+        });
+
+        pickr.on('change', (color: any, source: any, instance: any) => {
+            setFrameColor(color.toHEXA().toString());
+            dispatch({type: Commands.CHANGE_FRAME, payload: {color: color.toHEXA().toString()}});
+            pickr.applyColor(true);
+        });
+
     }
 
     const deleteAllPhotos = () => {
@@ -245,7 +297,10 @@ const view: Component<IProps> = (props: IProps) => {
                                  aria-valuenow={imageUploadProgress()[0]}
                                  aria-valuemin="0"
                                  aria-valuemax={imageUploadProgress()[1]}
-                                 style={{width: `${imageUploadProgress()[1] / 100 * imageUploadProgress()[0]}%`, "font-size": "13px"}}>
+                                 style={{
+                                     width: `${imageUploadProgress()[1] / 100 * imageUploadProgress()[0]}%`,
+                                     "font-size": "13px"
+                                 }}>
                                 {Math.ceil(imageUploadProgress()[1] / 100 * imageUploadProgress()[0])}%
                             </div>
                         </div>
@@ -286,7 +341,7 @@ const view: Component<IProps> = (props: IProps) => {
                                             </label>
                                         </li>
                                     )}
-                                   {/* <li>
+                                    {/* <li>
                                         <hr class="dropdown-divider"/>
                                     </li>
                                     <li><a class="dropdown-item link-warning" href="#" onClick={() => resetOption(option.option_id)}>Сбросить</a></li>
@@ -321,22 +376,25 @@ const view: Component<IProps> = (props: IProps) => {
                         </div>
                     </div>*/}
 
-                <Show when={frameType() === FrameType.REGULAR}>
+                <Show when={frameType() !== FrameType.NONE}>
                     <div class="row gx-5 mt-1 mb-3">
                         <div class="col">
                             <div class="form-">
                                 <label for="frameColorInput" class="col-form-label">Цвет</label>
-                                <input type="color" class="form-control " id="frameColorInput" value={frameColor()}
-                                       title="Choose your color" onInput={(data) => {
-                                    // @ts-ignore
-                                    const value = data.target.value;
-                                    setFrameColor(value);
-                                    dispatch({type: Commands.CHANGE_FRAME, payload: {color: value}})
-                                }}/>
+                                <div id="toolbar-color-picker"/>
+                                {/* <input type="color" class="form-control " id="frameColorInput" value={frameColor()}
+
+                                           title="Choose your color" onInput={(data) => {
+                                        // @ts-ignore
+                                        const value = data.target.value;
+                                        setFrameColor(value);
+                                        dispatch({type: Commands.CHANGE_FRAME, payload: {color: value}})
+                                    }}/>*/}
                             </div>
                         </div>
                     </div>
-
+                </Show>
+                <Show when={frameType() === FrameType.REGULAR}>
                     <div class="row gx-5 mt-1 mb-3">
                         <div class="col">
                             <div class="form-">
@@ -353,7 +411,8 @@ const view: Component<IProps> = (props: IProps) => {
 
                 <div class="row gx-5 mb-5 mt-1">
                     <div class="col">
-                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>Удалить все</button>
+                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>Удалить все
+                        </button>
                     </div>
                 </div>
 

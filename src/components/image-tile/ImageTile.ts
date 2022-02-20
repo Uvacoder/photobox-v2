@@ -57,8 +57,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         this.image.onload = () => {
             this.setMode(this.imageParameters.imagePrintMode)
         }
-        console.log(this.imageParameters.options);
-        if(this.imageParameters.options){
+        if (this.imageParameters.options) {
             this.viewState?.setOptions(this.imageParameters.options);
         }
     }
@@ -81,7 +80,6 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
 
 
-
         if (container) {
             container.append(this.getContainer());
         }
@@ -96,7 +94,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         Application.INVOKER.execute({type: Commands.CLONE_TILE, payload: this.uuid});
     }
 
-    deleteTile(){
+    deleteTile() {
         Application.INVOKER.execute({type: Commands.DELETE_TILE, payload: this.uuid});
     }
 
@@ -161,12 +159,12 @@ export class ImageTile extends BaseView<IProps, IState> {
                 ready() {
                     //that.detectBestFrame.call(that, this as CanvasImageSource, cropper)
                     that.viewState?.setLoaded(true);
-                    if (that.imageParameters.zoom){
+                    if (that.imageParameters.zoom) {
                         cropper.zoomTo(that.imageParameters.zoom || 0);
                     }
-                    if (that.imageParameters.cropData){
+                    if (that.imageParameters.cropData) {
                         cropper.setData(that.imageParameters.cropData as SetDataOptions || null);
-                    }else{
+                    } else {
                         that.imageParameters.cropData = cropper.getData();
                     }
                     that.updateCropper();
@@ -179,28 +177,28 @@ export class ImageTile extends BaseView<IProps, IState> {
         }
     }
 
-    private checkQuality(){
+    private checkQuality() {
         this.viewState?.setBadPhotoQuality(false);
         const size = this.imageParameters.size;
         // @ts-ignore
         const minRequiredSize = config.sizeQualityMap[`${size.width}x${size.height}`];
-        if(!minRequiredSize){
+        if (!minRequiredSize) {
             return;
         }
 
-        if(this.imageParameters.imagePrintMode === ImagePrintMode.CROP){
-            if(!this.imageParameters.cropData){
+        if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
+            if (!this.imageParameters.cropData) {
                 return;
             }
-            if(this.imageParameters.cropData?.width < minRequiredSize.minWidth || this.imageParameters.cropData?.height < minRequiredSize.minHeight){
+            if (this.imageParameters.cropData?.width < minRequiredSize.minWidth || this.imageParameters.cropData?.height < minRequiredSize.minHeight) {
                 this.viewState?.setBadPhotoQuality(true);
             }
-        }else{
+        } else {
             const imageSize = {
                 width: this.getImage().naturalWidth,
                 height: this.getImage().naturalHeight
             }
-            if(imageSize.width < minRequiredSize.minWidth || imageSize.height < minRequiredSize.minHeight){
+            if (imageSize.width < minRequiredSize.minWidth || imageSize.height < minRequiredSize.minHeight) {
                 this.viewState?.setBadPhotoQuality(true);
             }
         }
@@ -272,7 +270,8 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (this.imageParameters.imagePrintMode == ImagePrintMode.CROP) {
             this.imageParameters.cropData = this.cropper?.getData(true) || null;
         }
-        console.log(this.imageParameters);
+        console.log(this.viewState?.copies);
+        this.imageParameters.quantity = this.viewState?.copies || 1;
         return this.imageParameters;
     }
 
@@ -339,33 +338,72 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (!frameElement) {
             return;
         }
+        this.deleteFrame();
         switch (type) {
             case FrameType.POLAROID:
-                frameElement.style.border = "5px solid #fff"
+                frameElement.style.border = "5px solid #fff";
                 frameElement.style.borderBottomWidth = "15px";
                 break;
             case FrameType.REGULAR:
-                frameElement.style.border = "0px solid #fff"
+                frameElement.style.border = `${config.defaultFrameWeight}px solid #fff`;
+                break;
+            case FrameType.NONE:
+                frameElement.style.border = "none";
                 break;
             default:
-                frameElement.style.border = "none"
+                frameElement.style.border = "none";
+                this.createFrame(type);
                 break;
         }
-
         this.viewState?.setFrameType(type);
+    }
+
+    private deleteFrame() {
+        const frameElement: HTMLElement = this.getPlainDomElement().getElementsByClassName('cropper-crop-box')[0] as HTMLElement;
+        if (!frameElement) {
+            return;
+        }
+
+        if (frameElement.getElementsByClassName("frame-container")[0]) {
+            console.log('remove frame');
+            frameElement.getElementsByClassName("frame-container")[0].remove()
+        }
+    }
+
+    private createFrame(type: FrameType) {
+        const frameElement: HTMLElement = this.getPlainDomElement().getElementsByClassName('cropper-crop-box')[0] as HTMLElement;
+        const frames = frameElement.getElementsByClassName("frame-container");
+        if (frames.length) {
+            frameElement.removeChild(frames[0]);
+        }
+        const frameContainer = document.createElement("span");
+        const frame1 = document.createElement("span");
+        const frame2 = document.createElement("span");
+        const frame3 = document.createElement("span");
+        const frame4 = document.createElement("span");
+        frame1.className = "frame-1";
+        frame2.className = "frame-2";
+        frame3.className = "frame-3";
+        frame4.className = "frame-4";
+        frameContainer.className = "frame-container frame-type-" + type;
+        frameContainer.append(frame1, frame2, frame3, frame4);
+        Array.from(frameContainer.children).map((el: Element) => {
+            (el as HTMLElement).style.background = this.viewState?.frameColor || config.defaultFrameColor;
+        });
+        frameElement.append(frameContainer)
     }
 
     public setFrameWeight(thickness: number) {
         if (!this.imageParameters) {
             return;
         }
-        if (this.imageParameters.border == undefined) {
-            this.imageParameters.border = {
+        if (this.imageParameters.frame == undefined) {
+            this.imageParameters.frame = {
                 thickness: 0,
                 color: 'white'
             }
         }
-        this.imageParameters.border!.thickness = thickness;
+        this.imageParameters.frame!.thickness = thickness;
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
 
             const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
@@ -375,7 +413,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         } else {
             const tile = this.getImageContainer();
             tile.style.borderStyle = 'solid';
-            tile.style.borderColor = this.imageParameters.border.color;
+            tile.style.borderColor = this.imageParameters.frame.color;
             tile.style.borderWidth = `${thickness}px`;
         }
 
@@ -383,31 +421,39 @@ export class ImageTile extends BaseView<IProps, IState> {
     }
 
     public setFrameColor(color: string) {
+        this.viewState?.setFrameColor(color);
         if (!this.imageParameters) {
             return;
         }
-        if (this.imageParameters.border == undefined) {
-            this.imageParameters.border = {
+        if (this.imageParameters.frame == undefined) {
+            this.imageParameters.frame = {
                 thickness: 0,
                 color: 'white'
             }
         }
-        this.imageParameters.border!.color = color;
-
+        this.imageParameters.frame!.color = color;
+        console.log(this.viewState?.frameColor);
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
             const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
-            if (frameElement) {
-
-                frameElement.style.borderColor = color;
+            if (!frameElement) {
+                return;
             }
+            frameElement.style.borderColor = color;
+            const frames = this.getPlainDomElement().getElementsByClassName("frame-container");
+            if (frames.length) {
+                Array.from(frames[0].children).map((el: Element) => {
+                    (el as HTMLElement).style.background = color;
+                });
+            }
+
         } else {
             const tile = this.getImageContainer();
             tile.style.borderStyle = 'solid';
-            tile.style.borderWidth = `${this.imageParameters.border.thickness}px`;
+            tile.style.borderWidth = `${this.imageParameters.frame.thickness}px`;
             tile.style.borderColor = color;
         }
 
-        this.viewState?.setFrameColor(color);
+
     }
 
     public detectColorPalette(isTrue: boolean) {

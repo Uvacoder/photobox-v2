@@ -41,7 +41,7 @@ export default class Application {
 
     constructor(parameters: PhotoBoxParameters) {
         Application.CONFIG = {
-            imagesPerPage: 14
+            imagesPerPage: 30
         }
         this.parameters = parameters;
         this.options = parameters.options;
