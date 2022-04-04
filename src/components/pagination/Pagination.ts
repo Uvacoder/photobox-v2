@@ -6,7 +6,7 @@ import pagination from "../../utils/paginate";
 import {Pagination as PaginationData} from "../../interface/Pagination";
 import Viewport from "../viewport/Viewport";
 
-export default class Pagination extends BaseView<IProps, IState> {
+export default class Pagination extends BaseView<IProps, IState> implements Observer{
     private viewState: IState | null = null;
     private totalItems: number = 0;
     private currentPage: number = 1;
@@ -17,6 +17,10 @@ export default class Pagination extends BaseView<IProps, IState> {
         this.totalItems = totalItems || 0;
         const pagination = this.updatePaginationData();
         this.mountView(view, {onPageChanged: this.onPageChanged.bind(this), paginationData: pagination});
+    }
+
+    update(...args: unknown[]): void {
+        this.updatePaginationData(this.viewport?.getImagesNumber());
     }
 
     onMountView(state: IState) {
@@ -31,7 +35,7 @@ export default class Pagination extends BaseView<IProps, IState> {
     }
 
     updatePaginationData(totalItems?: number): PaginationData {
-        if (totalItems != undefined) {
+        if (totalItems) {
             this.totalItems = totalItems;
         }
         const result = pagination(this.totalItems, this.currentPage, Application.CONFIG.imagesPerPage);

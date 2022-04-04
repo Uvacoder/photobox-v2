@@ -12,7 +12,7 @@ export default class CloneTileCommand implements Command {
     }
 
     execute(uuid: string): void {
-        this.app.getViewport().cloneTile(uuid);
+        //this.app.getViewport().cloneTile(uuid);
     }
 
 

@@ -689,7 +689,10 @@
                             "option_value_id": [
                                 "341",
                                 "342",
-                                "343"
+                                "343",
+                                "3437",
+                                "3436",
+                                "3435"
                             ]
                         }
                     ],
@@ -837,7 +840,6 @@
                         {
                             "option_id": "79",
                             "option_value_id": [
-                                "329",
                                 "330"
                             ]
                         }
@@ -884,7 +886,6 @@
                         {
                             "option_id": "79",
                             "option_value_id": [
-                                "329",
                                 "330"
                             ]
                         }
@@ -931,7 +932,6 @@
                         {
                             "option_id": "79",
                             "option_value_id": [
-                                "329",
                                 "330"
                             ]
                         }
@@ -978,7 +978,6 @@
                         {
                             "option_id": "79",
                             "option_value_id": [
-                                "329",
                                 "330"
                             ]
                         }
@@ -1020,18 +1019,21 @@
             e.addImages(
                 [
                     {
-                        "url": "./img/1.jpg",
+                        "src": {
+                            "thumbnail": "./img/1.jpg",
+                        },
                         "size": {
-                            "w": 9,
-                            "h": 13
+                            "width": 9,
+                            "height": 13
                         },
                         "cropData": null,
-                        "imagePrintMode": 0,
                         "quantity": 1,
                         "zoom": 0
                     },
-                    {
-                        "url": "./img/2.jpg",
+                    /*{
+                        "src": {
+                            "thumbnail": "./img/2.jpg",
+                        },
                         "size": {
                             "w": 9,
                             "h": 13
@@ -1040,7 +1042,7 @@
                         "imagePrintMode": 0,
                         "quantity": 1,
                         "zoom": 0
-                    }
+                    }*/
                 ]
             );
 
@@ -1048,20 +1050,25 @@
         });
 
         setTimeout(() => {
-            for(let i = 1; i <= 33; i++){
-                photobox.addImages([
-                    {
-                        "url": `./img/${i}.jpg`,
-                        "size": {
-                            "w": 9,
-                            "h": 13
-                        },
-                        "cropData": null,
-                        "imagePrintMode": 0,
-                        "quantity": 1,
-                        "zoom": 0
-                    }
-                ])
+            for(let i = 1; i <= 3; i++){
+                for(let j = 0; j <= 10; j++){
+                   setTimeout(() => {
+                       photobox.addImages([
+                           {
+                               "src": {
+                                   "thumbnail": `./img/${i}.jpg`,
+                               },
+                               "size": {
+                                   "width": 9,
+                                   "height": 13
+                               },
+                               "cropData": null,
+                               "quantity": 1,
+                               "zoom": 0
+                           }
+                       ])
+                   }, 1000)
+                }
             }
         }, 500);
 
@@ -1081,7 +1088,7 @@
         }, 500)*/
 
         photobox.onMakeOrder((data) => {
-            console.log(data);
+            //  console.log(data.photos[0].cropData);
         });
         photobox.onOpenUploadWindow(() => {
             alert("open window");

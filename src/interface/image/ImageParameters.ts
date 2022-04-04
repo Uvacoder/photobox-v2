@@ -1,6 +1,6 @@
-import {ImagePrintMode} from "../constants/ImagePrintMode";
-import {Option} from "./options/Option";
-import {FrameType} from "../constants/FrameType";
+import {ImagePrintMode} from "../../constants/ImagePrintMode";
+import {Option} from "../options/Option";
+import {FrameType} from "../../constants/FrameType";
 
 export interface ImageParameters {
 
@@ -10,11 +10,11 @@ export interface ImageParameters {
     }
     cropData: Cropper.Data | null | undefined;
     size: { width: number, height: number };
-    imagePrintMode: ImagePrintMode;
-    frame?: {
+    imagePrintMode?: ImagePrintMode;
+    frame: {
         color: string,
         thickness: number,
-        type?: FrameType
+        type: FrameType
     },
     quantity: number,
     zoom?: number,

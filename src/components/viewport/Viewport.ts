@@ -1,14 +1,16 @@
 import {BaseView} from "../../BaseView";
 import {ImageTile} from "../image-tile/ImageTile";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
-import {ImageParameters} from "../../interface/ImageParameters";
+import {ImageParameters} from "../../interface/image/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
 import Application from "../../Application";
 import {Pagination as PaginationData} from "../../interface/Pagination";
 import {PhotoBoxParameters} from "../../interface/PhotoBoxParameters";
 import OptionsHandler from "../../utils/OptionsHandler";
+import {ImageActions} from "../../interface/image/ImageActions";
+import config from "../../config/config.json";
 
-export default class Viewport extends BaseView<any, any> implements Observable {
+export default class Viewport extends BaseView<any, any> implements Observable, ImageActions {
     public images: ImageTile[] = [];
     public static zoomFactor: number = 1;
     private maxZoomFactor: number = 1.5;
@@ -29,8 +31,9 @@ export default class Viewport extends BaseView<any, any> implements Observable {
             full: ""
         },
         frame: {
-            thickness: 0,
-            color: "#ffffff"
+            thickness: config.defaultFrameWeight,
+            color: config.defaultFrameColor,
+            type: FrameType.NONE
         }
     };
 
@@ -64,17 +67,14 @@ export default class Viewport extends BaseView<any, any> implements Observable {
         this.notify(this.images.length)
     }
 
-    public addImage(url: string, state?: ImageParameters) {
+    public addImage(parameters?: ImageParameters) {
         const container = this.getContainer();
         let imgContainer = document.createElement('div');
         imgContainer.className = 'image-tile';
 
         //container.insertBefore(imgContainer, container.firstChild);
-        const imageTile = new ImageTile(url, this.createHTMLElement('div', 'image-tile'), state)
-
-        if (state) {
-            //imageTile.deserializeState(state);
-        }
+        const imageTile = new ImageTile(parameters, this.createHTMLElement('div', 'image-tile'))
+        imageTile.registerListeners(this);
 
         this.images.push(imageTile);
 
@@ -88,24 +88,26 @@ export default class Viewport extends BaseView<any, any> implements Observable {
         this.notifyImagesChanged( );
     }
 
-    public cloneTile(uuid: string) {
+    public onClone(uid: string){
         let index = this.images.map(function (e) {
             return e.uuid;
-        }).indexOf(uuid);
+        }).indexOf(uid);
         const originalTile = this.images[index];
         const container = this.createHTMLElement('div', 'image-tile');
-        const newTile = new ImageTile(originalTile.serializeState().src.thumbnail, container, originalTile.serializeState());
+        const newTile = new ImageTile(originalTile.serializeState(), container);
+        newTile.registerListeners(this);
         this.images.splice(index + 1, 0, newTile);
+
+        this.notifyImagesChanged();
         if (this.paginationData) {
             this.renderImages(0, 10);
         }
-        this.notifyImagesChanged();
     }
 
-    public deleteTile(uuid: string) {
+    public onDelete(uid: string){
         let index = this.images.map(function (e) {
             return e.uuid;
-        }).indexOf(uuid);
+        }).indexOf(uid);
         this.images.splice(index, 1);
         if (this.paginationData) {
             this.renderImages(0, 10);
@@ -171,7 +173,6 @@ export default class Viewport extends BaseView<any, any> implements Observable {
 
     private updateTilesZoom() {
         this.getCurrentPageImages().forEach(image => {
-            console.log(image);
             image.setZoom();
         });
     }
@@ -218,6 +219,8 @@ export default class Viewport extends BaseView<any, any> implements Observable {
         const container = this.getContainer();
         container.innerHTML = "";
 
+        console.log('Render, options:');
+        console.log(JSON.stringify(this.globalOptions));
         this.getCurrentPageImages().forEach(tile => {
             tile.render(this.globalOptions, container);
             // container.append(tile.getContainer());

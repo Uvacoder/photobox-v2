@@ -56,7 +56,10 @@ export default class Application {
         this.pagination = await new Pagination(document.getElementById("pagination-container"));
 
         this.pagination.registerViewport(this.viewport);
+
         this.viewport.subscribe(this.toolbar);
+        this.viewport.subscribe(this.pagination);
+
         this.toolbar.setOptions(this.options, this.parameters.preselectedOptions);
 
         this.registerCommands();
@@ -113,7 +116,6 @@ export default class Application {
         Application.INVOKER.register(Commands.GO_TO_PAGE, new GoToPageCommand(this));
         Application.INVOKER.register(Commands.AUTO_DETECT_FRAME, new DetectBestFrameCommand(this));
         Application.INVOKER.register(Commands.CHANGE_FRAME, new ChangeFrameCommand(this));
-        Application.INVOKER.register(Commands.CLONE_TILE, new CloneTileCommand(this));
         Application.INVOKER.register(Commands.DELETE_ALL_IMAGES, new DeleteAllImagesCommand(this));
         Application.INVOKER.register(Commands.OPEN_UPLOAD_WINDOW, new OpenUploadWindowCommand(this));
         Application.INVOKER.register(Commands.PROPERTY_CHANGED, new PropertyChangedCommand(this));
@@ -156,7 +158,7 @@ export default class Application {
 
     public addImages(images: any[]){
         images.map(image => {
-            this.viewport.addImage(image.url, /*state[i] as ImageState*/);
+            this.viewport.addImage(image, /*state[i] as ImageState*/);
             this.pagination.updatePaginationData(this.viewport.getImagesNumber());
         });
 

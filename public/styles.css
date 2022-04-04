@@ -179,3 +179,11 @@ input[type=number] {
 .pickr .pcr-button{
   border: 1px solid #d5d5d5;
 }
+
+.image-tile .btn-toolbar .btn-group{
+  height: 38px;
+}
+
+.image-container .hidden-image{
+  display: none;
+}

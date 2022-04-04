@@ -12,7 +12,7 @@ export default class DeleteTileCommand implements Command {
     }
 
     execute(uuid: string): void {
-        this.app.getViewport().deleteTile(uuid);
+        //this.app.getViewport().deleteTile(uuid);
     }
 
 

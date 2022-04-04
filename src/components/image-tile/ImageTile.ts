@@ -6,12 +6,11 @@ import view, {IProps, IState} from "./view";
 import {fitGradient} from 'dont-crop';
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import Viewport from "../viewport/Viewport";
-import {ImageParameters} from "../../interface/ImageParameters";
+import {ImageParameters} from "../../interface/image/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
-import Application from "../../Application";
-import {Commands} from "../../constants/Commands";
 import {v4 as uuidv4} from "uuid";
 import config from "../../config/config.json";
+import {ImageActions} from "../../interface/image/ImageActions";
 import CropEndEvent = Cropper.CropEndEvent;
 import SetDataOptions = Cropper.SetDataOptions;
 
@@ -27,6 +26,11 @@ export class ImageTile extends BaseView<IProps, IState> {
             thumbnail: "",
             full: ""
         },
+        frame: {
+            color: config.defaultFrameColor,
+            type: FrameType.NONE,
+            thickness: config.defaultFrameWeight
+        },
         size: {
             width: 9,
             height: 13
@@ -35,17 +39,17 @@ export class ImageTile extends BaseView<IProps, IState> {
         imagePrintMode: ImagePrintMode.CROP,
         quantity: 1
     }
+    private imageActionsListeners?: ImageActions;
 
-    constructor(thumbnail: string, container?: HTMLElement, serializedState?: ImageParameters) {
+    constructor(parameters?: ImageParameters, container?: HTMLElement) {
         super(container);
-        // this.mountView(view, {src});
-        this.thumbnail = thumbnail;
-
-        this.imageParameters.src.thumbnail = thumbnail;
-        if (serializedState) {
-            this.imageParameters = serializedState;
+        if (parameters) {
+            if (!parameters.src || !parameters.src.thumbnail) {
+                throw new Error("No thumbnail");
+            }
+            this.thumbnail = parameters.src.thumbnail;
+            this.imageParameters = {...this.imageParameters, ...parameters};
         }
-
     }
 
 
@@ -55,17 +59,19 @@ export class ImageTile extends BaseView<IProps, IState> {
         this.image = this.getImage();
         // @ts-ignore
         this.image.onload = () => {
-            this.setMode(this.imageParameters.imagePrintMode)
+            this.setMode(this.imageParameters.imagePrintMode || ImagePrintMode.CROP)
         }
         if (this.imageParameters.options) {
             this.viewState?.setOptions(this.imageParameters.options);
         }
     }
 
-    render(state?: ImageParameters, container?: HTMLElement) {
-        if (state) {
-            this.imageParameters = {...this.imageParameters, ...state}
+    render(parameters?: ImageParameters, container?: HTMLElement) {
+        if (parameters) {
+            this.imageParameters = {...parameters, ...this.imageParameters}
         }
+        console.log(JSON.stringify(parameters));
+        console.log(JSON.stringify(this.imageParameters));
         if (!this.isMounted) {
             const props: IProps = {
                 src: this.thumbnail,
@@ -79,23 +85,29 @@ export class ImageTile extends BaseView<IProps, IState> {
             this.mountView(view, props);
         }
 
-
         if (container) {
             container.append(this.getContainer());
         }
-
         this.updateTile();
-        //this.viewState?.setLoaded(false);
     }
 
     cloneTile() {
         // console.log(this);
         // console.log('cloneTile');
-        Application.INVOKER.execute({type: Commands.CLONE_TILE, payload: this.uuid});
+        //Application.INVOKER.execute({type: Commands.CLONE_TILE, payload: this.uuid});
+        if (this.imageActionsListeners) {
+            this.imageActionsListeners.onClone(this.uuid);
+        }
     }
 
     deleteTile() {
-        Application.INVOKER.execute({type: Commands.DELETE_TILE, payload: this.uuid});
+        if (this.imageActionsListeners) {
+            this.imageActionsListeners.onDelete(this.uuid);
+        }
+    }
+
+    public registerListeners(imageActionsListeners: ImageActions) {
+        this.imageActionsListeners = imageActionsListeners;
     }
 
     /**
@@ -121,6 +133,7 @@ export class ImageTile extends BaseView<IProps, IState> {
         } else {
             this.switchToFullImageMode();
         }
+
     }
 
     private switchToCropperMode() {
@@ -168,6 +181,7 @@ export class ImageTile extends BaseView<IProps, IState> {
                         that.imageParameters.cropData = cropper.getData();
                     }
                     that.updateCropper();
+                    that.updateAndRenderFrame();
                 }
             });
 
@@ -235,9 +249,11 @@ export class ImageTile extends BaseView<IProps, IState> {
         this.detectColorPalette(this.imageParameters.detectAndFillWithGradient || false);
         //this.getContainer().style.display = "none";
         this.checkQuality();
+        this.updateAndRenderFrame();
     }
 
     public updateCropper() {
+        console.log('updateCropper');
         this.cropper?.setAspectRatio(this.getAspectRatio());
         // @ts-ignore
         this.cropper?.cropper.style.display = "block";
@@ -262,16 +278,35 @@ export class ImageTile extends BaseView<IProps, IState> {
 
     public setMode(imagePrintMode: ImagePrintMode) {
         this.imageParameters.imagePrintMode = imagePrintMode;
+        if(!this.isMounted){
+            return;
+        }
         this.updateTile();
+        this.updateAndRenderFrame();
     }
 
 
     public serializeState(): ImageParameters {
         if (this.imageParameters.imagePrintMode == ImagePrintMode.CROP) {
-            this.imageParameters.cropData = this.cropper?.getData(true) || null;
+            const cropData = this.cropper?.getData(true);
+            const image =  this.getImage();
+            const imageWidth = image.naturalWidth;
+            const imageHeight = image.naturalHeight;
+            cropData!.width = Math.round(cropData!.width / imageWidth * 100);
+            cropData!.x = Math.round(cropData!.x / imageWidth * 100);
+            cropData!.height = Math.round(cropData!.height / imageHeight * 100);
+            cropData!.y = Math.round(cropData!.y / imageHeight * 100);
+            this.imageParameters.cropData = cropData || null;
         }
-        console.log(this.viewState?.copies);
-        this.imageParameters.quantity = this.viewState?.copies || 1;
+        console.log(this.viewState);
+        this.imageParameters.quantity = this.viewState?.copies() || 10;
+
+        this.imageParameters.frame = {
+            color: this.viewState?.frameColor() || config.defaultFrameColor,
+            type: this.viewState?.frameType() || FrameType.NONE,
+            thickness: this.viewState?.frameThickness() || config.defaultFrameWeight,
+        }
+        console.log({...this.imageParameters});
         return this.imageParameters;
     }
 
@@ -327,18 +362,37 @@ export class ImageTile extends BaseView<IProps, IState> {
         this.cropper?.reset();
     }
 
+    public updateAndRenderFrame() {
+        console.log(this.imageParameters.frame);
+        this.setFrameType(this.imageParameters.frame.type || FrameType.NONE)
+        if (this.imageParameters.frame && this.viewState && this.imageParameters.frame.type != FrameType.NONE) {
+            //console.log(this.imageParameters.frame);
+
+            this.setFrameColor(this.imageParameters.frame.color)
+            this.setFrameWeight(this.imageParameters.frame.thickness)
+        }
+    }
+
     public setFrameType(type: FrameType) {
+        this.imageParameters.frame.type = type;
+        if(!this.isMounted){
+            return;
+        }
+        console.log('setFrameType', type, this.imageParameters.imagePrintMode, this.uuid);
         let frameElement: HTMLElement;
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
             frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
         } else {
             frameElement = this.getImageContainer();
         }
-
         if (!frameElement) {
             return;
         }
-        this.deleteFrame();
+
+        this.deleteSpecialFrame();
+        frameElement.style.border = "none";
+        this.viewState?.setFrameType(type);
+        this.imageParameters.frame.type = type;
         switch (type) {
             case FrameType.POLAROID:
                 frameElement.style.border = "5px solid #fff";
@@ -347,30 +401,49 @@ export class ImageTile extends BaseView<IProps, IState> {
             case FrameType.REGULAR:
                 frameElement.style.border = `${config.defaultFrameWeight}px solid #fff`;
                 break;
-            case FrameType.NONE:
-                frameElement.style.border = "none";
+            case FrameType.ZEBRA:
+            case FrameType.HOOK:
+            case FrameType.LUMBER:
+                this.createSpecialFrame(type);
                 break;
-            default:
-                frameElement.style.border = "none";
-                this.createFrame(type);
+            case FrameType.NONE:
+                this.resetFrame();
                 break;
         }
-        this.viewState?.setFrameType(type);
     }
 
-    private deleteFrame() {
-        const frameElement: HTMLElement = this.getPlainDomElement().getElementsByClassName('cropper-crop-box')[0] as HTMLElement;
-        if (!frameElement) {
+    private resetFrame(){
+        this.imageParameters.frame = {
+            color: config.defaultFrameColor,
+            type: FrameType.NONE,
+            thickness: config.defaultFrameWeight
+        };
+
+        this.viewState?.setFrameType(FrameType.NONE);
+        this.viewState?.setFrameThickness(config.defaultFrameWeight);
+        this.viewState?.setFrameColor(config.defaultFrameColor);
+    }
+
+    private deleteSpecialFrame() {
+        const cropperFrame = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
+        const containerFrame = this.getImageContainer();
+        if(cropperFrame){
+            cropperFrame.style.border = "none";
+        }
+        if(containerFrame){
+            containerFrame.style.border = "none";
+        }
+        const cropperContainer: HTMLElement = this.getPlainDomElement().getElementsByClassName('cropper-crop-box')[0] as HTMLElement;
+        if (!cropperContainer) {
             return;
         }
 
-        if (frameElement.getElementsByClassName("frame-container")[0]) {
-            console.log('remove frame');
-            frameElement.getElementsByClassName("frame-container")[0].remove()
+        if (cropperContainer.getElementsByClassName("frame-container")[0]) {
+            cropperContainer.getElementsByClassName("frame-container")[0].remove()
         }
     }
 
-    private createFrame(type: FrameType) {
+    private createSpecialFrame(type: FrameType) {
         const frameElement: HTMLElement = this.getPlainDomElement().getElementsByClassName('cropper-crop-box')[0] as HTMLElement;
         const frames = frameElement.getElementsByClassName("frame-container");
         if (frames.length) {
@@ -388,7 +461,11 @@ export class ImageTile extends BaseView<IProps, IState> {
         frameContainer.className = "frame-container frame-type-" + type;
         frameContainer.append(frame1, frame2, frame3, frame4);
         Array.from(frameContainer.children).map((el: Element) => {
-            (el as HTMLElement).style.background = this.viewState?.frameColor || config.defaultFrameColor;
+            if(this.viewState?.frameType() !== FrameType.ZEBRA){
+                (el as HTMLElement).style.background = this.viewState?.frameColor() || config.defaultFrameColor;
+            }else{
+                (el as HTMLElement).style.borderColor = this.viewState?.frameColor() || config.defaultFrameColor;
+            }
         });
         frameElement.append(frameContainer)
     }
@@ -397,13 +474,6 @@ export class ImageTile extends BaseView<IProps, IState> {
         if (!this.imageParameters) {
             return;
         }
-        if (this.imageParameters.frame == undefined) {
-            this.imageParameters.frame = {
-                thickness: 0,
-                color: 'white'
-            }
-        }
-        this.imageParameters.frame!.thickness = thickness;
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
 
             const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
@@ -413,26 +483,22 @@ export class ImageTile extends BaseView<IProps, IState> {
         } else {
             const tile = this.getImageContainer();
             tile.style.borderStyle = 'solid';
-            tile.style.borderColor = this.imageParameters.frame.color;
+            tile.style.borderColor = this.viewState?.frameColor() || config.defaultFrameColor;
             tile.style.borderWidth = `${thickness}px`;
         }
 
         this.viewState?.setFrameThickness(thickness);
+        this.imageParameters.frame.thickness = thickness;
     }
 
     public setFrameColor(color: string) {
+
+        console.log('setFrameColor', color, this.imageParameters.imagePrintMode, this.uuid);
         this.viewState?.setFrameColor(color);
+        this.imageParameters.frame.color = color;
         if (!this.imageParameters) {
             return;
         }
-        if (this.imageParameters.frame == undefined) {
-            this.imageParameters.frame = {
-                thickness: 0,
-                color: 'white'
-            }
-        }
-        this.imageParameters.frame!.color = color;
-        console.log(this.viewState?.frameColor);
         if (this.imageParameters.imagePrintMode === ImagePrintMode.CROP) {
             const frameElement = this.getPlainDomElement().getElementsByClassName('cropper-move')[0] as HTMLElement;
             if (!frameElement) {
@@ -442,18 +508,20 @@ export class ImageTile extends BaseView<IProps, IState> {
             const frames = this.getPlainDomElement().getElementsByClassName("frame-container");
             if (frames.length) {
                 Array.from(frames[0].children).map((el: Element) => {
-                    (el as HTMLElement).style.background = color;
+                    if(this.viewState?.frameType() !== FrameType.ZEBRA){
+                        (el as HTMLElement).style.background = color;
+                    }else{
+                        (el as HTMLElement).style.borderColor = color;
+                    }
                 });
             }
 
         } else {
             const tile = this.getImageContainer();
-            tile.style.borderStyle = 'solid';
-            tile.style.borderWidth = `${this.imageParameters.frame.thickness}px`;
+            tile.style.borderStyle = this.viewState?.frameType() || 'none';
+            tile.style.borderWidth = `${ this.viewState?.frameThickness() || config.defaultFrameWeight}px`;
             tile.style.borderColor = color;
         }
-
-
     }
 
     public detectColorPalette(isTrue: boolean) {

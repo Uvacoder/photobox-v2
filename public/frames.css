@@ -10,11 +10,21 @@
     top: 5px;
 }
 .frame-container.frame-type-zebra{
-    border: 1px double #fff;
     z-index: 0;
 }
 
 .frame-container.frame-type-zebra > .frame-1{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border: 1px double #fff;
+    z-index: 0;
+    margin: 0;
+}
+
+.frame-container.frame-type-zebra > .frame-2{
     position: absolute;
     width: calc(100% - 10px);
     height: calc(100% - 10px);

@@ -64,14 +64,15 @@ export abstract class BaseView<P = Props, S = State> {
     }
 
     public getPlainDomElement(): HTMLElement {
+
         // @ts-ignore
         return (this.element[0] as HTMLElement);
     }
 
-    public createHTMLElement(tag: string, lassName?: string): HTMLElement {
+    public createHTMLElement(tag: string, className?: string): HTMLElement {
         const el = document.createElement(tag);
-        if(lassName){
-            el.className = lassName;
+        if(className){
+            el.className = className;
         }
         return el;
     }

@@ -12,7 +12,6 @@ import State from "../../interface/State";
 import {t} from "../../i18n/i18n";
 import {Option} from "../../interface/options/Option";
 import {OptionItem} from "../../interface/options/OptionItem";
-import {HandledOptionResult} from "../../interface/options/HandledOptionResult";
 import OptionsHandler from "../../utils/OptionsHandler";
 import {PreselectedOption} from "../../interface/options/PreselectedOption";
 import Pickr from "@simonwep/pickr";
@@ -79,7 +78,12 @@ const view: Component<IProps> = (props: IProps) => {
             dispatch({
                 type: Commands.CHANGE_FRAME,
                 payload: {frame: frame}
-            })
+            });
+
+            if(frame === FrameType.NONE){
+                setFrameThickness(config.defaultFrameWeight);
+                setFrameColor(config.defaultFrameColor);
+            }
         } else if (option.label === "size") {
             dispatch({
                 type: Commands.CHANGE_SIZE,
