@@ -10,6 +10,10 @@ export default class OptionsHandler {
         this.options = options;
     }
 
+    /**
+     * Transforms array of Option to map, option id -> Option
+     * @param options array of options
+     */
     public static toMap(options: Option[]): Map<string, Option> {
         const result = new Map<string, Option>();
         options.map(obj => {
@@ -26,6 +30,14 @@ export default class OptionsHandler {
         return result;
     }
 
+    /**
+     *
+     * @param originalOptions
+     * @param selectedOptionsMap
+     * @param checked
+     * @param optionId
+     * @param valueId
+     */
     public static handleOptionChange(originalOptions: Map<string, Option>,
                                      selectedOptionsMap: Map<string, OptionItem>,
                                      checked: boolean,
@@ -97,6 +109,7 @@ export default class OptionsHandler {
                 })
             })
         });
+
         return {
             affectedOptionItem: affectedOption,
             affectedOption: option,

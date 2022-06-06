@@ -1,5 +1,5 @@
 import {Option} from "./options/Option";
-import {ImageTile} from "../components/image-tile/ImageTile";
+import {ImageTileImpl} from "../components/image-tile/ImageTileImpl";
 import {ImageParameters} from "./image/ImageParameters";
 
 export interface ExportedProperties{

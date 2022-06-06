@@ -47,20 +47,28 @@ export default class Application {
         this.options = parameters.options;
     }
 
+    private readonly sidebarContainer = "sidebar-container";
+
+    private readonly viewportContainer = "viewport-container";
+
+    private readonly paginationContainer = "pagination-container";
+
     public async init(){
         await this.initI18N();
         await this.createSkeleton();
 
-        this.toolbar = await new Toolbar(document.getElementById("sidebar-container"), this.parameters.preselectedOptions);
-        this.viewport = await new Viewport(document.getElementById("viewport-container"), this.parameters);
-        this.pagination = await new Pagination(document.getElementById("pagination-container"));
+        this.toolbar = await new Toolbar(document.getElementById(this.sidebarContainer), this.parameters);
+        this.viewport = await new Viewport(document.getElementById(this.viewportContainer), this.parameters);
+        this.pagination = await new Pagination(document.getElementById(this.paginationContainer));
 
         this.pagination.registerViewport(this.viewport);
 
         this.viewport.subscribe(this.toolbar);
         this.viewport.subscribe(this.pagination);
 
-        this.toolbar.setOptions(this.options, this.parameters.preselectedOptions);
+        this.toolbar.subscribe(this.viewport);
+
+        //this.toolbar.setOptions(this.options, this.parameters.preselectedOptions);
 
         this.registerCommands();
         this.registerListeners();

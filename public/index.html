@@ -706,7 +706,7 @@
         {
             "description": "",
             "option_id": "82",
-            "name": "Цвет рамки",
+            "name": "Рамка",
             "label": "border-select",
             "option_values": [
                 {
@@ -798,7 +798,7 @@
                             ]
                         }
                     ],
-                    "name": "Белая",
+                    "name": "Сплошная",
                     "label": "solid",
                     "value": "",
                     "price": "0.0000"
@@ -1020,7 +1020,7 @@
                 [
                     {
                         "src": {
-                            "thumbnail": "./img/1.jpg",
+                            "thumbnail": "./img/1-thumbnail.jpg",
                         },
                         "size": {
                             "width": 9,
@@ -1051,12 +1051,12 @@
 
         setTimeout(() => {
             for(let i = 1; i <= 3; i++){
-                for(let j = 0; j <= 10; j++){
+                for(let j = 0; j <= 500; j++){
                    setTimeout(() => {
                        photobox.addImages([
                            {
                                "src": {
-                                   "thumbnail": `./img/${i}.jpg`,
+                                   "thumbnail": `./img/${i}-thumbnail.jpg`,
                                },
                                "size": {
                                    "width": 9,
@@ -1067,10 +1067,10 @@
                                "zoom": 0
                            }
                        ])
-                   }, 1000)
+                   }, 10)
                 }
             }
-        }, 500);
+        }, 5);
 
         photobox.onInit = function () {
             console.log('onInitGlob');

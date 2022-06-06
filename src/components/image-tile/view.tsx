@@ -13,6 +13,10 @@ import {Option} from "../../interface/options/Option";
 import {OptionItem} from "../../interface/options/OptionItem";
 import Pickr from "@simonwep/pickr";
 import config from "../../config/config.json";
+import OptionsHandler from "../../utils/OptionsHandler";
+import {ImagePrintMode} from "../../constants/ImagePrintMode";
+import {Commands} from "../../constants/Commands";
+import {Constants} from "../../constants/Constants";
 
 export interface IProps extends Props {
     // name: string,
@@ -23,6 +27,8 @@ export interface IProps extends Props {
     setFrameType: (arg1: FrameType) => void,
     cloneTile: () => void,
     deleteTile: () => void,
+    setImageMode: (arg1: ImagePrintMode) => void,
+    setAspectRatio: (w: number, h: number) => void
 }
 
 
@@ -46,51 +52,36 @@ const view: Component<IProps> = (props: IProps) => {
     let colorPicker: HTMLDivElement | undefined;
     let frameOptionsDropdown: HTMLDivElement | undefined;
     let tooltipList: Tooltip[] = [];
+    const selectedOptionsMap = new Map<string, OptionItem>();
 
+    // general
+    const [loaded, setLoaded] = createSignal(false);
+    const [colorPickerInstance, setColorPicker] = createSignal(null);
+
+    // frame style
     const [frameThickness, setFrameThickness] = createSignal(config.defaultFrameWeight);
     const [frameColor, setFrameColor] = createSignal(config.defaultFrameColor);
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
+
+    // additional image options
+    const [imageMode, setImageMode] = createSignal(ImagePrintMode.CROP);
     const [copies, setCopies] = createSignal(1);
-    const [loaded, setLoaded] = createSignal(false);
-    const [colorPickerInstance, setColorPicker] = createSignal(null);
     const [badPhotoQuality, setBadPhotoQuality] = createSignal(false);
     const [autoColorEnhance, setAtoColorEnhance] = createSignal(false);
+
+    // color manipulation
     const [saturation, setSaturation] = createSignal(1);
     const [brightness, setBrightness] = createSignal(1);
     const [contrast, setContrast] = createSignal(1);
-    const [options, setOptions] = createSignal(new Map<string, Option>());
     const [colorAdjustment, setColorAdjustment] = createSignal('hue-rotate(0deg) brightness(1) contrast(1)');
 
+    // image options
+    const [options, setOptions] = createSignal(new Map<string, Option>());
 
-    const [count, setCount] = createSignal(0);
-
-    createEffect(() => {
-        setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
-        if (imageContainer) {
-            let images = Array.from(imageContainer.getElementsByTagName("img"));
-            for (let img of images) {
-                img.style.filter = colorAdjustment();
-            }
-        }
-    });
-
-    createEffect(() => {
-        badPhotoQuality();
-        imageContainer!.querySelectorAll('[data-bs-tooltip="poor-quality"]').forEach((item) => {
-            if (!item.hasAttribute("data-bs-tooltip-ready")) {
-                item.setAttribute("data-bs-tooltip-ready", "true");
-                new Tooltip(item, {trigger: 'hover'});
-            }
-        })
-    })
-
-    const state = {
+    const state : IState = {
         setLoaded,
         copies,
         setCopies,
-        saturation,
-        brightness,
-        contrast,
         frameThickness,
         frameType,
         setFrameType,
@@ -98,18 +89,15 @@ const view: Component<IProps> = (props: IProps) => {
         frameColor,
         setFrameColor,
         setBadPhotoQuality,
-        setOptions
+        setOptions: (arg: Map<string, Option>) => updateOptions.call(this, arg)
     }
+
     onMount(function () {
         if (props.onMount) {
             props.onMount(state)
         }
-        //tooltipList.map(tooltip => tooltip.dispose());
 
-        const tooltipTriggerList = [].slice.call(toolbarContainer!.querySelectorAll('[data-bs-tooltip="tooltip"]'))
-        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
-        });
+        recreateToolTips();
 
         frameOptionsDropdown?.addEventListener('show.bs.dropdown', function () {
             console.log('show.bs.dropdown');
@@ -125,8 +113,90 @@ const view: Component<IProps> = (props: IProps) => {
                 console.log(colorPicker);
             }*/
         })
-    });
+    })
 
+    createEffect(() => {
+        setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
+        if (imageContainer) {
+            let images = Array.from(imageContainer.getElementsByTagName("img"));
+            for (let img of images) {
+                img.style.filter = colorAdjustment();
+            }
+        }
+    })
+
+    createEffect(() => {
+        badPhotoQuality();
+        imageContainer!.querySelectorAll('[data-bs-tooltip="poor-quality"]').forEach((item) => {
+            if (!item.hasAttribute("data-bs-tooltip-ready")) {
+                item.setAttribute("data-bs-tooltip-ready", "true");
+                new Tooltip(item, {trigger: 'hover'});
+            }
+        })
+    })
+
+    createEffect(() => {
+        //options();
+        //recreateToolTips();
+    })
+
+    const updateOptions = (options: Map<string, Option>) => {
+
+
+        setTimeout(() => {
+            setOptions(options);
+            recreateToolTips();
+        }, 500);
+    }
+
+    const recreateToolTips = () => {
+        const tooltipTriggerList = [].slice.call(toolbarContainer!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
+        tooltipList.map(tooltip => tooltip.dispose());
+        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'});
+        });
+    }
+
+    const onOptionChanged = (event: HTMLInputElement, optionId: string, valueId: string) => {
+
+        const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
+        if (!handledOption) {
+            return;
+        }
+        updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
+        setOptions(handledOption.updatedOptions);
+        recreateToolTips();
+        console.log(handledOption.updatedOptions);
+        console.log(JSON.stringify(handledOption.updatedOptions));
+        // props.optionChanged();
+
+    }
+
+    const updateView = (option: Option, checked: boolean, affectedOption: OptionItem) => {
+        // change image mode
+        if (option.label === Constants.PRINT_MODE_OPTION_LABEL) {
+            const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
+            props.setImageMode(mode);
+        }
+        // change image frame
+        else if (option.label === Constants.FRAME_OPTION_LABEL) {
+            const frame = checked ? affectedOption.label as FrameType : FrameType.NONE;
+            props.setFrameType(frame);
+
+            if(frame === FrameType.NONE){
+                setFrameThickness(config.defaultFrameWeight);
+                setFrameColor(config.defaultFrameColor);
+            }
+        }
+        // change image size
+        else if (option.label === Constants.SIZE_OPTION_LABEL) {
+            if(affectedOption.value){
+                props.setAspectRatio(parseInt(affectedOption.value[0]), parseInt(affectedOption.value[1]))
+            }
+        }
+    }
+
+    // border color picker
     const createColorPicker = () => {
         if (colorPicker && !colorPickerInstance()) {
             console.log('createColorPicker');
@@ -163,8 +233,7 @@ const view: Component<IProps> = (props: IProps) => {
             });
 
             pickr.on('change', (color: any, source: any, instance: any) => {
-                setFrameColor(color.toHEXA().toString());
-                //dispatch({type: Commands.CHANGE_FRAME, payload: {color: color.toRGBA().toString()}});
+                props.setFrameColor(color.toHEXA().toString());
             });
 
             pickr.on('changestop', (color: any, source: any, instance: any) => {
@@ -313,8 +382,7 @@ const view: Component<IProps> = (props: IProps) => {
                                             <input type="range" class="form-range" onInput={(data) => {
                                                 // @ts-ignore
                                                 const value = data.target.value;
-                                                setFrameThickness(value);
-                                                //dispatch({type: Commands.CHANGE_FRAME, payload: {thickness: parseInt(value)}})
+                                                props.setFrameWeight(value);
                                             }} min="0" max="15" step="1" value={frameThickness()} id="frameColor"/>
                                         </div>
                                     </div>
@@ -343,6 +411,7 @@ const view: Component<IProps> = (props: IProps) => {
                             </div>
                         </li>
 
+                        <Show when={!autoColorEnhance()}>
                         <li>
                             <label for="hue-range" class="form-label m-0">{t("tile.saturation")}</label>
                             <input type="range" class="form-range" id="hue-range" min={0} max={2} step={0.1}
@@ -361,6 +430,12 @@ const view: Component<IProps> = (props: IProps) => {
                                    value={contrast()} disabled={autoColorEnhance()}
                                    onInput={(data) => setContrast((data.target as HTMLInputElement).valueAsNumber)}/>
                         </li>
+                        </Show>
+                        <Show when={autoColorEnhance()}>
+                            <button type="button" class="btn btn-primary w-100">
+                                Show diff
+                            </button>
+                        </Show>
                     </ul>
                     {/*  <button type="button" class="btn btn-outline-light link-primary" data-bs-tooltip="tooltip"
                             title="Вертикально"
@@ -421,14 +496,14 @@ const view: Component<IProps> = (props: IProps) => {
                                                                     data-bs-custom-class={`${optionValue.conflictedOptions ? 'warning-tooltip' : 'tooltip'}`}>
                                                                     <label
                                                                         class={`dropdown-item ${optionValue.disabled ? 'disabled' : ''}`}
-                                                                        for={`option-${optionValue.option_value_id}`}>
+                                                                        for={`individual-option-${optionValue.option_value_id}-${props.uid}`}>
                                                                         <input class="form-check-input m-1" type="checkbox"
                                                                                name={`group-${option.option_id}`}
                                                                                disabled={optionValue.disabled}
                                                                                checked={optionValue.selected}
-                                                                               id={`option-${optionValue.option_value_id}`}
+                                                                               id={`individual-option-${optionValue.option_value_id}-${props.uid}`}
                                                                                onChange={(e) => {
-                                                                                   // changeOption(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
+                                                                                   onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
                                                                                    e.preventDefault();
                                                                                }}/>
                                                                         {optionValue.name}

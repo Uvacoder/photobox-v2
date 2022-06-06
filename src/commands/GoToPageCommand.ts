@@ -10,7 +10,7 @@ export class GoToPageCommand implements Command {
     }
 
     execute(paginationData: Pagination): void {
-        this.app.getViewport().renderImages(paginationData.startIndex, paginationData.endIndex);
+        this.app.getViewport().renderImages();
     }
 
 

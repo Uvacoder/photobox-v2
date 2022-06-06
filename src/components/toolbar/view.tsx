@@ -16,10 +16,12 @@ import OptionsHandler from "../../utils/OptionsHandler";
 import {PreselectedOption} from "../../interface/options/PreselectedOption";
 import Pickr from "@simonwep/pickr";
 import config from "../../config/config.json";
+import {HandledOptionResult} from "../../interface/options/HandledOptionResult";
+import {Constants} from "../../constants/Constants";
 
 export interface IProps extends Props {
     click: (action: Action) => void,
-    optionChanged: () => void,
+    optionChanged: (optionId: string, valueId: string) => void,
     preselectedOptions?: PreselectedOption[];
 }
 
@@ -29,7 +31,6 @@ export interface IState extends State {
     setPreselectedOptions: (options: PreselectedOption[]) => void,
     setImageUploadProgress: (arg: number[]) => void,
 }
-
 
 const view: Component<IProps> = (props: IProps) => {
     let container: HTMLDivElement | undefined;
@@ -41,38 +42,102 @@ const view: Component<IProps> = (props: IProps) => {
     const [detectPalette, setDetectPalette] = createSignal(false);
     const [detectBestFrame, setDetectBestFrame] = createSignal(true);
     const [frameThickness, setFrameThickness] = createSignal(config.defaultFrameWeight);
-    const [frameColor, setFrameColor] = createSignal('#ffffff');
+    const [frameColor, setFrameColor] = createSignal(config.defaultFrameColor);
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
     const [imagesNumber, setImagesNumber] = createSignal(2);
     const [options, setOptions] = createSignal(new Map<string, Option>());
     const [preselectedOptions, setPreselectedOptions] = createSignal([] as PreselectedOption[]);
     const [imageUploadProgress, setImageUploadProgress] = createSignal([0, 0]);
 
+    const state = {
+        setImagesNumber,
+        setOptions,
+        setImageUploadProgress,
+        setPreselectedOptions
+    }
+
+
+    onMount(function () {
+        //console.log(i18n.t('hello', {name: "Andrii"}));
+
+        if (props.onMount) {
+            props.onMount(state)
+        }
+        createEffect(() => {
+            dispatch({type: Commands.DETECT_PALETTE, payload: detectPalette()});
+        });
+        createEffect(() => {
+            dispatch({type: Commands.AUTO_DETECT_FRAME, payload: detectBestFrame()});
+        });
+
+        //var toast = new Toast(document.getElementById('liveToast') as Element).show();
+    })
+
+/*    createEffect(() => {
+        preselectedOptions().map(preselectedOption => {
+            const handledOption = OptionsHandler.handleOptionChange(
+                frozenOptions,
+                selectedOptionsMap,
+                true,
+                preselectedOption.option_id,
+                preselectedOption.option_value_id);
+            if (!handledOption) {
+                return;
+            }
+            updateView(handledOption.affectedOption, true, handledOption.affectedOptionItem);
+            setOptions(handledOption.updatedOptions);
+            //props.optionChanged();
+        })
+    })*/
+
+    createEffect(() => {
+        // console.log(options());
+        //options();
+        frozenOptions = new Map(options());
+        const tooltipTriggerList = [].slice.call(container!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
+        tooltipList.map(tooltip => tooltip.dispose());
+        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
+        });
+        // console.log(tooltipList);
+    })
+
+    createEffect(() => {
+        frameType();
+        createColorPicker("toolbar-color-picker");
+    })
+
     const dispatch = (action: Action) => {
         props.click(action);
     }
 
-    const changeOption = (event: HTMLInputElement, optionId: string, valueId: string) => {
+    const onOptionChanged = (event: HTMLInputElement, optionId: string, valueId: string) => {
 
         const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
         if (!handledOption) {
             return;
         }
+        console.log(options());
+
         updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
         setOptions(handledOption.updatedOptions);
-        props.optionChanged();
+
+        props.optionChanged(optionId, valueId);
     }
 
 
     const updateView = (option: Option, checked: boolean, affectedOption: OptionItem) => {
-        if (option.label === "framing") {
+        // change image mode
+        if (option.label === Constants.PRINT_MODE_OPTION_LABEL) {
             const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
             dispatch({
                 type: Commands.CHANGE_IMAGE_PRINT_MODE,
                 payload: mode
             });
             setImageMode(mode);
-        } else if (option.label === FrameType.FRAME_OPTION_LABEL) {
+        }
+        // change image frame
+        else if (option.label === Constants.FRAME_OPTION_LABEL) {
             const frame = checked ? affectedOption.label as FrameType : FrameType.NONE;
             setFrameType(frame);
             dispatch({
@@ -84,14 +149,15 @@ const view: Component<IProps> = (props: IProps) => {
                 setFrameThickness(config.defaultFrameWeight);
                 setFrameColor(config.defaultFrameColor);
             }
-        } else if (option.label === "size") {
+        }
+        // change image size
+        else if (option.label === "size") {
             dispatch({
                 type: Commands.CHANGE_SIZE,
                 payload: affectedOption.value
             })
         }
     }
-
 
     const resetOption = (optionId: string) => {
         const newOptions = new Map(options());
@@ -123,70 +189,15 @@ const view: Component<IProps> = (props: IProps) => {
         setOptions(newOptions);
     }
 
-    const state = {
-        setImagesNumber,
-        setOptions,
-        setImageUploadProgress,
-        setPreselectedOptions
-    }
-
-    createEffect(() => {
-
-        preselectedOptions().map(preselectedOption => {
-            const handledOption = OptionsHandler.handleOptionChange(frozenOptions, selectedOptionsMap, true,
-                preselectedOption.option_id.toString(), preselectedOption.option_value_id);
-            if (!handledOption) {
-                console.log("!handledOption");
-                return;
-            }
-            updateView(handledOption.affectedOption, true, handledOption.affectedOptionItem);
-            setOptions(handledOption.updatedOptions);
-            props.optionChanged();
-        })
-    });
-
-    createEffect(() => {
-        // console.log(options());
-        //options();
-        frozenOptions = new Map(options());
-        const tooltipTriggerList = [].slice.call(container!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
-        tooltipList.map(tooltip => tooltip.dispose());
-        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
-        });
-        // console.log(tooltipList);
-    })
-
-    onMount(function () {
-        //console.log(i18n.t('hello', {name: "Andrii"}));
-
-        if (props.onMount) {
-            props.onMount(state)
-        }
-        createEffect(() => {
-            dispatch({type: Commands.DETECT_PALETTE, payload: detectPalette()});
-        });
-        createEffect(() => {
-            dispatch({type: Commands.AUTO_DETECT_FRAME, payload: detectBestFrame()});
-        });
-
-        var toast = new Toast(document.getElementById('liveToast') as Element).show();
-
-
-    })
-
     const openUploadWindow = () => {
         dispatch({type: Commands.OPEN_UPLOAD_WINDOW});
     }
+
     const onMakeOrder = () => {
         dispatch({type: Commands.MAKE_ORDER});
     }
 
-    createEffect(() => {
-        frameType();
-        createColorPicker("toolbar-color-picker");
-    })
-
+    // border color picker
     const createColorPicker = (el: string) => {
 
         if (!document.getElementById(el)) {
@@ -200,7 +211,7 @@ const view: Component<IProps> = (props: IProps) => {
             el: `#${el}`,//'.color-picker',
             theme: 'nano', // or 'monolith', or 'nano'
             container: 'body',
-            default: config.defaultFrameColor,
+            default: frameColor(),
             swatches: [
                 'rgba(244, 67, 54, 1)',
                 'rgba(233, 30, 99, 1)',
@@ -338,7 +349,7 @@ const view: Component<IProps> = (props: IProps) => {
                                                        name={`group-${option.option_id}`}
                                                        disabled={optionValue.disabled} checked={optionValue.selected}
                                                        id={`option-${optionValue.option_value_id}`} onChange={(e) => {
-                                                    changeOption(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
+                                                    onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
                                                     e.preventDefault();
                                                 }}/>
                                                 {optionValue.name}

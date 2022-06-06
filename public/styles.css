@@ -149,7 +149,7 @@ body.sb-sidenav-toggled #wrapper #sidebar-container {
   margin: auto;
   left: 0;
   right: 0;
-  z-index: 9;
+  z-index: 5;
 }
 
 /* Chrome, Safari, Edge, Opera */

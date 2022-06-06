@@ -9,7 +9,7 @@ export default class PropertyChangedCommand implements Command {
 
     }
 
-    execute(uuid: string): void {
+    execute(payload: object): void {
         if(this.app.parameters.onMakeOrderCallback){
             this.app.parameters.onMakeOrderCallback({
                 options: this.app.parameters.options,

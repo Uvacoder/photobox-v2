@@ -45,7 +45,7 @@
 }
 .frame-container.frame-type-hook > *::after{
     position: absolute;
-    background: #fff;
+    background: inherit;
     z-index: 10;
     content: "";
     height: 10px;

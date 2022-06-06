@@ -41,7 +41,11 @@ export abstract class BaseView<P = Props, S = State> {
         //return this.viewState;
     }
 
-    abstract onMountView(state: S): void;
+    protected abstract onMountView(state: S): void;
+
+    //protected abstract onShow(): void;
+
+    //protected abstract onHide(): void;
 
     createElement(tagName: string) {
 

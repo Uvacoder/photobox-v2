@@ -1,5 +1,4 @@
 import {BaseView} from "../../BaseView";
-import {ImageTile} from "../image-tile/ImageTile";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {ImageParameters} from "../../interface/image/ImageParameters";
 import {FrameType} from "../../constants/FrameType";
@@ -9,20 +8,22 @@ import {PhotoBoxParameters} from "../../interface/PhotoBoxParameters";
 import OptionsHandler from "../../utils/OptionsHandler";
 import {ImageActions} from "../../interface/image/ImageActions";
 import config from "../../config/config.json";
+import {ImageTile} from "../image-tile/ImageTile";
+import {ImageTileImpl} from "../image-tile/ImageTileImpl";
 
-export default class Viewport extends BaseView<any, any> implements Observable, ImageActions {
-    public images: ImageTile[] = [];
+export default class Viewport extends BaseView<any, any> implements Observer, Observable, ImageActions {
+    public images: ImageTileImpl[] = [];
     public static zoomFactor: number = 1;
     private maxZoomFactor: number = 1.5;
     private minZoomFactor: number = 1;
     private zoomStep: number = .05;
     public static initialSize: number = 200;
     private observers: Set<Observer>;
-    private parameters?: PhotoBoxParameters;
+    //private photoBoxParameters?: PhotoBoxParameters;
 
     private paginationData?: PaginationData;
-    private globalOptions: ImageParameters = {
-        cropData: undefined,
+    globalOptions: ImageParameters = {
+        cropData: null,
         imagePrintMode: ImagePrintMode.CROP,
         quantity: 0,
         size: {height: 9, width: 9},
@@ -37,13 +38,26 @@ export default class Viewport extends BaseView<any, any> implements Observable, 
         }
     };
 
-    constructor(container?: HTMLElement | null, parameters?: PhotoBoxParameters) {
+    constructor(container?: HTMLElement | null, photoBoxParameters?: PhotoBoxParameters) {
         super(container);
         this.observers = new Set();
-        this.parameters = parameters;
-        if(parameters?.options){
-            this.globalOptions.options = OptionsHandler.toMap(parameters?.options);
+        if(photoBoxParameters?.options){
+            this.globalOptions.options = OptionsHandler.toMap(photoBoxParameters?.options);
         }
+    }
+
+    update(...args: unknown[]): void {
+        console.log("Updating each tile....");
+        console.log("Got data in viewport");
+        console.log(args);
+        let startTime = performance.now()
+        this.images.forEach((image, i) => {
+            image.updateParameters(this.globalOptions);
+        });
+        let endTime = performance.now()
+
+        console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
+
     }
 
     subscribe(observer: Observer): void {
@@ -57,35 +71,49 @@ export default class Viewport extends BaseView<any, any> implements Observable, 
     notify(message: any): void {
         this.observers.forEach(observer => {
             observer.update(message);
-        })
+        });
     }
 
-    onMountView() {
-    }
+    onMountView() {}
 
     private notifyImagesChanged(){
         this.notify(this.images.length)
     }
 
-    public addImage(parameters?: ImageParameters) {
+    public addImage(parameters: ImageParameters) {
         const container = this.getContainer();
         let imgContainer = document.createElement('div');
         imgContainer.className = 'image-tile';
 
         //container.insertBefore(imgContainer, container.firstChild);
-        const imageTile = new ImageTile(parameters, this.createHTMLElement('div', 'image-tile'))
+        parameters = {...this.globalOptions, ...parameters};
+        const imageTile = new ImageTileImpl(this.createHTMLElement('div', 'image-tile'), parameters)
         imageTile.registerListeners(this);
 
         this.images.push(imageTile);
 
+        let renderedTile;
         if (this.images.length <= Application.CONFIG.imagesPerPage) {
-            imageTile.render(this.globalOptions, container);
+            renderedTile = imageTile.render(this.globalOptions);
             //container.append(imageTile.getContainer());
         } else if (this.isLastPageWithEmptySlots()) {
-            imageTile.render(this.globalOptions, container);
+            renderedTile = imageTile.render(this.globalOptions);
         }
 
-        this.notifyImagesChanged( );
+        container.append(renderedTile || '');
+
+        this.notifyImagesChanged();
+    }
+
+
+    public renderImages() {
+        const container = this.getContainer();
+        container.innerHTML = "";
+
+        this.getCurrentPageImages().forEach(tile => {
+            let rendered = tile.render(this.globalOptions);
+            container.append(rendered);
+        });
     }
 
     public onClone(uid: string){
@@ -94,13 +122,13 @@ export default class Viewport extends BaseView<any, any> implements Observable, 
         }).indexOf(uid);
         const originalTile = this.images[index];
         const container = this.createHTMLElement('div', 'image-tile');
-        const newTile = new ImageTile(originalTile.serializeState(), container);
+        const newTile = new ImageTileImpl(container, originalTile.serializeState());
         newTile.registerListeners(this);
         this.images.splice(index + 1, 0, newTile);
 
         this.notifyImagesChanged();
         if (this.paginationData) {
-            this.renderImages(0, 10);
+            this.renderImages();
         }
     }
 
@@ -110,14 +138,14 @@ export default class Viewport extends BaseView<any, any> implements Observable, 
         }).indexOf(uid);
         this.images.splice(index, 1);
         if (this.paginationData) {
-            this.renderImages(0, 10);
+            this.renderImages();
         }
         this.notifyImagesChanged();
     }
 
     public deleteAllImages(){
         this.images = [];
-        this.renderImages(0, 0);
+        this.renderImages();
         this.notifyImagesChanged();
     }
 
@@ -212,18 +240,6 @@ export default class Viewport extends BaseView<any, any> implements Observable, 
         this.globalOptions.frame!.type = type;
         this.getCurrentPageImages().forEach(image => {
             image.setFrameType(type);
-        });
-    }
-
-    public renderImages(startIndex: number, endIndex: number) {
-        const container = this.getContainer();
-        container.innerHTML = "";
-
-        console.log('Render, options:');
-        console.log(JSON.stringify(this.globalOptions));
-        this.getCurrentPageImages().forEach(tile => {
-            tile.render(this.globalOptions, container);
-            // container.append(tile.getContainer());
         });
     }
 
