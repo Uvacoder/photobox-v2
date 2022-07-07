@@ -11,5 +11,6 @@ export interface OptionItem{
     selected: boolean | undefined, // specify if option is selected
     conflictedOptions: string[] | null, // list of options which conflict with current
     relation_options: OptionItemRelation[]; // list of compatible options
-    value: string[] | string | null; // can contain payload for internal mechanism
+    relation_options_map: Map<string, string[]>; // map of compatible options
+    value: string[] | string; // can contain payload for internal mechanism
 }

@@ -1,8 +1,8 @@
 import {render} from "solid-js/web";
-import Counter, {IProps} from "./components/image-tile/view";
+import Counter, {IProps} from "./image-tile/view";
 import {JSX} from "solid-js";
-import Props from "./interface/Props";
-import State from "./interface/State";
+import Props from "../interface/Props";
+import State from "../interface/State";
 
 
 export abstract class BaseView<P = Props, S = State> {

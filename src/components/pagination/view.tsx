@@ -17,13 +17,8 @@ export interface IState extends State {
 
 const view = (props: IProps) => {
 
-
     const [paginationData, setPaginationData] = createSignal(props.paginationData as Pagination);
     const [currentPage, setCurrentPage] = createSignal(1);
-
-    createEffect(() => {
-        //console.log(`Page changed: ${currentPage()}`);
-    })
 
     const exposedState = {
         currentPage: currentPage(),
@@ -58,45 +53,46 @@ const view = (props: IProps) => {
         <Show when={paginationData().totalPages > 1}>
             <ul class="pagination">
                 <li className={`page-item ${currentPage() <= 1 ? 'disabled' : ''}`}>
-                    <a class="page-link" href="#" onClick={() => goToPage(currentPage() - 1)}>&laquo;</a>
+                    <span class="page-link" onClick={() => goToPage(currentPage() - 1)}>&laquo;</span>
                 </li>
 
                 {(currentPage() > paginationData().pageSize) &&
                     <li className={`page-item`}>
-                        <a class="page-link" href="#"
-                           onClick={() => goToPage(1)}>1</a>
+                        <span class="page-link"
+                           onClick={() => goToPage(1)}>1</span>
                     </li>
                 }
 
                 {(currentPage() > paginationData().pageSize) &&
                     <li class="page-item disabled">
-                        <a class="page-link" href="#">...</a>
+                        <span class="page-link">...</span>
                     </li>
                 }
 
                 {paginationData().pages.map(page => {
                     return (
                         <li className={`page-item ${currentPage() == page ? 'active' : ''}`}>
-                            <a class="page-link" href="#" onClick={() => goToPage(page)}>{page}</a>
+                            <span class="page-link" onClick={() => goToPage(page)}>{page}</span>
                         </li>
                     )
                 })}
 
                 {(currentPage() < paginationData().totalPages - 5) &&
                     <li class="page-item disabled">
-                        <a class="page-link" href="#">...</a>
+                        <span class="page-link">...</span>
                     </li>
                 }
 
 
                 {(currentPage() < paginationData().totalPages - 5) &&
                     <li className={`page-item ${currentPage() == paginationData().totalPages ? 'active' : ''}`}>
-                        <a class="page-link" href="#"
-                           onClick={() => goToPage(paginationData().totalPages)}>{paginationData().totalPages}</a>
+                        <span class="page-link" onClick={() => goToPage(paginationData().totalPages)}>
+                            {paginationData().totalPages}
+                        </span>
                     </li>
                 }
                 <li className={`page-item ${currentPage() >= paginationData().totalPages ? 'disabled' : ''}`}>
-                    <a class="page-link" href="#" onClick={() => goToPage(currentPage() + 1)}>&raquo;</a>
+                    <span class="page-link" onClick={() => goToPage(currentPage() + 1)}>&raquo;</span>
                 </li>
             </ul>
         </Show>

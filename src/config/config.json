@@ -1,7 +1,12 @@
 {
-  "imagesPerPage": 14,
+  "itemsPerPage": 20,
   "defaultFrameColor": "#ffffff",
+  "infoToastBackground": "#35b537",
+  "infoToastTimout": 4000,
+  "poorQualityIconColor" : "#ea8001",
+  "optionConflictIconColor" : "#ff2200",
   "defaultFrameWeight": 5,
+  "colorEnhanceEndpoint": "/api/enhance-color",
   "sizeQualityMap": {
     "102x152": {
       "minWidth": 400,

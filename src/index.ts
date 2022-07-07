@@ -1,26 +1,37 @@
 import Application from "./Application";
-import {Option} from "./interface/options/Option";
-import OptionsHandler from "./utils/OptionsHandler";
 import {PhotoBoxParameters} from "./interface/PhotoBoxParameters";
 import {ExportedProperties} from "./interface/ExportedProperties";
 import {Commands} from "./constants/Commands";
+import {PreselectedOption} from "./interface/options/PreselectedOption";
 
 export default class PhotoBox {
-    public onInit: (() => void) | undefined;
+    public onReadyCallback?: (() => void);
     private application: Application;
     private parameters: PhotoBoxParameters;
+    private readonly onStart: (arg: PhotoBox) => void;
+    private initialized = false;
 
     constructor(parameters: PhotoBoxParameters, onStart: (arg: PhotoBox) => void) {
         this.application = new Application(parameters);
         this.parameters = parameters;
+        this.onStart = onStart;
+        this.init();
+    }
+
+    private init() {
         this.application.init().then(() => {
-            onStart(this);
-            const serializedImages = localStorage.getItem("images");
-            if(serializedImages){
-                console.log(JSON.parse(serializedImages));
-                this.addImages(JSON.parse(serializedImages));
-            }
-        });
+            this.onReadyCallback?.call(this);
+            this.onStart(this);
+            this.initialized = true;
+        })
+    }
+
+    public onReady(callback: () => void) {
+        if(this.initialized){
+            callback.call(this);
+            return;
+        }
+        this.onReadyCallback = callback;
     }
 
     /**
@@ -28,6 +39,9 @@ export default class PhotoBox {
      * @param images list of images
      */
     public addImages(images: any[]) {
+        if (!images) {
+            return;
+        }
         this.application.addImages(images)
     }
 
@@ -73,9 +87,18 @@ export default class PhotoBox {
     }
 
     /**
-     * Clear photo box - delete all photos
+     * Set previously selected options
+     * @param preselectedOptions
+     */
+    public setPreselectedOptions(preselectedOptions: PreselectedOption[]) {
+        this.application.setPreselectedOptions(preselectedOptions);
+    }
+
+
+    /**
+     * Clear photo box - delete all photos and reset options
      */
     public clear() {
-        Application.INVOKER.execute({type: Commands.DELETE_ALL_IMAGES})
+        this.application.clearPhotobox();
     }
 }

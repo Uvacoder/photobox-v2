@@ -1,5 +1,6 @@
 import Command from "../interface/command/Command";
 import Application from "../Application";
+import {measureSync} from "../utils/decorators";
 
 export default class MakeOrderCommand implements Command {
     private app: Application;
@@ -9,12 +10,18 @@ export default class MakeOrderCommand implements Command {
 
     }
 
+    @measureSync
     execute(uuid: string): void {
-        if(this.app.parameters.onMakeOrderCallback){
+        if (this.app.parameters.onMakeOrderCallback) {
+            let photos = this.app.getViewport().serializePhotos();
+            if(!photos.length){
+                return;
+            }
             this.app.parameters.onMakeOrderCallback({
                 options: this.app.parameters.options,
-                extra: 'extra',
-                photos: this.app.getViewport().serializeState()
+                selectedOptions: this.app.getViewport().getSelectedOptions(),
+                extra: '',
+                photos: photos
             });
         }
     }

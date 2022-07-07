@@ -1,3 +1,5 @@
-interface Observer {
-    update(...args: unknown[]):void
+import {Commands} from "../../constants/Commands";
+
+export interface Observer {
+    update(event: Commands, ...args: any[]):void
 }

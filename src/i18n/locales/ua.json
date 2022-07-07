@@ -1,0 +1,47 @@
+{
+  "color": "Колір",
+  "detectBackground": "Підібрати фон",
+  "size": "Розмір",
+  "delete": "Видалити",
+  "options": "Опції",
+  "quantity": "Кількість",
+  "increaseQuantity": "Збільшити кількість копій",
+  "decreaseQuantity": "Зменшити кількість копій",
+  "optionsConflict": "Конфлікт опцій!",
+  "unexpectedError": "Виникла помилка, вибачте за незручності",
+  "uploadingStarted": "Завантаження розпочато",
+  "colorEnhanceInProgress": "Зачекайте, будь ласка, фтогорафія обробляється",
+  "optionIsNotSelectedWarning": "Для всіх або деяких фотографій не задані опції. Будь ласка, вкажіть всі опції.",
+  "confirmation": {
+    "areYouSure": "Ви впевнені у дії?",
+    "cantUndone": "Цю дію не можливо буде скасувати",
+    "warning": "Попередження",
+    "yes": "Так",
+    "no": "Ні",
+    "cancel": "Скасувати",
+    "close": "Закрити",
+    "ok": "OK"
+  },
+  "tile":{
+    "copy": "Копіювати",
+    "colorCorrection": "Корекція кольору",
+    "autocorrection": "Автокорекція",
+    "saturation": "Насиченість",
+    "brightness": "Яскравість",
+    "contrast": "Контраст",
+    "compare": "Порівняти",
+    "frameParams": "Параметри рамки",
+    "rotate": "Повернути фото",
+    "badPhotoQuality": "Поганий дозвіл. Ви отримаєте фото низької якості з ефектом розмиття",
+    "optionConflictWarning": "Для деяких фотографій цю опцію не можна застосувати через несумісність з іншими вибраними опціями. Будь ласка перевірте фотографії, позначені знаком оклику",
+    "optionConflictTooltip": "Виявлено конфлікт опцій, будь ласка, виберіть сумісні опції"
+  },
+  "toolbar": {
+    "imageQuantity": "Кількість: {{number}}",
+    "totalImages": "Фотографій: {{number}}",
+    "loadedImages": "Завантажено зображень {{current}}/{{total}}",
+    "imageLoading": "Завантаження",
+    "deleteAll": "Видалити всі",
+    "order": "Замовити"
+  }
+}

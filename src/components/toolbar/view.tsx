@@ -1,7 +1,6 @@
 import {Component, createEffect, createSignal, onMount, Show} from "solid-js";
 import {Action} from "../../interface/command/Action";
 import Props from "../../interface/Props";
-import {Toast, Tooltip} from "bootstrap";
 import {Commands} from "../../constants/Commands";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {FrameType} from "../../constants/FrameType";
@@ -16,91 +15,61 @@ import OptionsHandler from "../../utils/OptionsHandler";
 import {PreselectedOption} from "../../interface/options/PreselectedOption";
 import Pickr from "@simonwep/pickr";
 import config from "../../config/config.json";
-import {HandledOptionResult} from "../../interface/options/HandledOptionResult";
+import tippy from "../../utils/tippy";
 import {Constants} from "../../constants/Constants";
+import Sticky from "sticky-js";
+import {h} from "tsx-dom";
 
 export interface IProps extends Props {
-    click: (action: Action) => void,
-    optionChanged: (optionId: string, valueId: string) => void,
-    preselectedOptions?: PreselectedOption[];
+    onActionCalled: (action: Action) => void;
+    optionChanged: (optionId: string, valueId: string, unchecked?: boolean) => void;
+    selectedOptionsMap: Map<string, OptionItem>;
 }
 
 export interface IState extends State {
-    setImagesNumber: (arg1: number) => void,
-    setOptions: (options: Map<string, Option>) => void,
-    setPreselectedOptions: (options: PreselectedOption[]) => void,
-    setImageUploadProgress: (arg: number[]) => void,
+    setImagesNumber: (arg1: number) => void;
+    setOptions: (options: Map<string, Option>) => void;
+    setImageUploadProgress: (arg: number[]) => void;
+    setFrameType: (arg: FrameType) => void;
+    setImageMode: (arg: ImagePrintMode) => void;
+    resetOptions: () => void;
+    setDetectPalette: (arg: boolean) => void;
 }
 
 const view: Component<IProps> = (props: IProps) => {
     let container: HTMLDivElement | undefined;
-    const selectedOptionsMap = new Map<string, OptionItem>();
-    let tooltipList: Tooltip[] = [];
-    let frozenOptions: Map<string, Option> = new Map<string, Option>();
 
     const [imageMode, setImageMode] = createSignal(ImagePrintMode.CROP);
     const [detectPalette, setDetectPalette] = createSignal(false);
-    const [detectBestFrame, setDetectBestFrame] = createSignal(true);
     const [frameThickness, setFrameThickness] = createSignal(config.defaultFrameWeight);
     const [frameColor, setFrameColor] = createSignal(config.defaultFrameColor);
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
-    const [imagesNumber, setImagesNumber] = createSignal(2);
+    const [imagesNumber, setImagesNumber] = createSignal(0);
     const [options, setOptions] = createSignal(new Map<string, Option>());
-    const [preselectedOptions, setPreselectedOptions] = createSignal([] as PreselectedOption[]);
     const [imageUploadProgress, setImageUploadProgress] = createSignal([0, 0]);
 
-    const state = {
+    const state: IState = {
         setImagesNumber,
         setOptions,
         setImageUploadProgress,
-        setPreselectedOptions
+        setFrameType,
+        setImageMode,
+        resetOptions: () => resetAllOptions.call(this),
+        setDetectPalette
     }
 
 
     onMount(function () {
-        //console.log(i18n.t('hello', {name: "Andrii"}));
-
         if (props.onMount) {
             props.onMount(state)
         }
-        createEffect(() => {
-            dispatch({type: Commands.DETECT_PALETTE, payload: detectPalette()});
-        });
-        createEffect(() => {
-            dispatch({type: Commands.AUTO_DETECT_FRAME, payload: detectBestFrame()});
-        });
+
+        // add usage to prevent removing import by TS compiler
+        tippy
 
         //var toast = new Toast(document.getElementById('liveToast') as Element).show();
     })
 
-/*    createEffect(() => {
-        preselectedOptions().map(preselectedOption => {
-            const handledOption = OptionsHandler.handleOptionChange(
-                frozenOptions,
-                selectedOptionsMap,
-                true,
-                preselectedOption.option_id,
-                preselectedOption.option_value_id);
-            if (!handledOption) {
-                return;
-            }
-            updateView(handledOption.affectedOption, true, handledOption.affectedOptionItem);
-            setOptions(handledOption.updatedOptions);
-            //props.optionChanged();
-        })
-    })*/
-
-    createEffect(() => {
-        // console.log(options());
-        //options();
-        frozenOptions = new Map(options());
-        const tooltipTriggerList = [].slice.call(container!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
-        tooltipList.map(tooltip => tooltip.dispose());
-        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'})
-        });
-        // console.log(tooltipList);
-    })
 
     createEffect(() => {
         frameType();
@@ -108,32 +77,33 @@ const view: Component<IProps> = (props: IProps) => {
     })
 
     const dispatch = (action: Action) => {
-        props.click(action);
+        props.onActionCalled(action);
     }
 
     const onOptionChanged = (event: HTMLInputElement, optionId: string, valueId: string) => {
 
-        const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
+        const handledOption = OptionsHandler.handleOptionChange(options(), props.selectedOptionsMap, event.checked, optionId, valueId);
         if (!handledOption) {
             return;
         }
-        console.log(options());
 
-        updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
         setOptions(handledOption.updatedOptions);
 
-        props.optionChanged(optionId, valueId);
+        updateStateAndInvokeCommand(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
+
+        props.optionChanged(optionId, valueId, event.checked);
     }
 
 
-    const updateView = (option: Option, checked: boolean, affectedOption: OptionItem) => {
+    const updateStateAndInvokeCommand = (option: Option, checked: boolean, affectedOption: OptionItem) => {
         // change image mode
         if (option.label === Constants.PRINT_MODE_OPTION_LABEL) {
-            const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.FULL;
+            const mode = checked ? affectedOption.label as ImagePrintMode : ImagePrintMode.CROP;
             dispatch({
                 type: Commands.CHANGE_IMAGE_PRINT_MODE,
                 payload: mode
             });
+
             setImageMode(mode);
         }
         // change image frame
@@ -145,9 +115,9 @@ const view: Component<IProps> = (props: IProps) => {
                 payload: {frame: frame}
             });
 
-            if(frame === FrameType.NONE){
-                setFrameThickness(config.defaultFrameWeight);
-                setFrameColor(config.defaultFrameColor);
+            if (frame === FrameType.NONE) {
+                //setFrameThickness(config.defaultFrameWeight);
+                //setFrameColor(config.defaultFrameColor);
             }
         }
         // change image size
@@ -203,7 +173,6 @@ const view: Component<IProps> = (props: IProps) => {
         if (!document.getElementById(el)) {
             return;
         }
-        console.log(document.getElementById(el));
         //const container = document.createElement("div");
         // container.className = "color-picker";
         //document.append(container);
@@ -243,6 +212,19 @@ const view: Component<IProps> = (props: IProps) => {
             pickr.applyColor(true);
         });
 
+        pickr.on('changestop', () => {
+            props.optionChanged('', '');
+        });
+
+        pickr.on('swatchselect', () => {
+            props.optionChanged('', '');
+        });
+
+    }
+
+    const onDetectPaletteChange= (value: boolean) => {
+        setDetectPalette(value);
+        dispatch({type: Commands.DETECT_PALETTE, payload: value});
     }
 
     const deleteAllPhotos = () => {
@@ -261,6 +243,7 @@ const view: Component<IProps> = (props: IProps) => {
             }
         })
     }
+
 
 
     return (
@@ -301,66 +284,88 @@ const view: Component<IProps> = (props: IProps) => {
                         {t('toolbar.totalImages', {number: imagesNumber()})}
                     </p>
                 </div>
-
-                {imageUploadProgress()[0] &&
-                    <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" data-bs-tooltip="tooltip" style={{cursor: 'pointer'}}
+                {/*Show progress bar if current and total number of images was set*/}
+                <Show when={imageUploadProgress()[1]}>
+                    <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" style={{cursor: 'pointer'}}
                          onClick={openUploadWindow}
-                         title={t('toolbar.imageLoading')} data-bs-placement="right">
-                        {t('toolbar.imageLoading')}:
+                         title={t('toolbar.imageLoading')}>
+                        <p class="mb-0">{t('toolbar.imageLoading')}</p>
                         <div className="progress" style="height: 15px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  aria-valuenow={imageUploadProgress()[0]}
                                  aria-valuemin="0"
                                  aria-valuemax={imageUploadProgress()[1]}
                                  style={{
-                                     width: `${imageUploadProgress()[1] / 100 * imageUploadProgress()[0]}%`,
+                                     width: `${100 / imageUploadProgress()[1] * imageUploadProgress()[0]}%`,
                                      "font-size": "13px"
                                  }}>
-                                {Math.ceil(imageUploadProgress()[1] / 100 * imageUploadProgress()[0])}%
+                                {Math.ceil(100 / imageUploadProgress()[1] * imageUploadProgress()[0])}%
                             </div>
                         </div>
                     </div>
-                }
+                </Show>
+                {/*Show progress bar if the value was set in percent*/}
+                <Show when={imageUploadProgress()[0] && !imageUploadProgress()[1]}>
+                    <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" style={{cursor: 'pointer'}}
+                         onClick={openUploadWindow}
+                         title={t('toolbar.imageLoading')}>
+                        <p class="mb-0">{t('toolbar.imageLoading')}</p>
+                        <div className="progress" style="height: 15px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 aria-valuenow={imageUploadProgress()[0]}
+                                 aria-valuemin="0"
+                                 aria-valuemax={imageUploadProgress()[1]}
+                                 style={{
+                                     width: `${imageUploadProgress()[0]}%`,
+                                     "font-size": "13px"
+                                 }}>
+                                {imageUploadProgress()[0]}%
+                            </div>
+                        </div>
+                    </div>
+                </Show>
+
                 {Array.from(options().values()).map((option: Option) =>
                     <div class="row gx-5 mt-1">
                         <div class="col">
-                            <div class="btn-group w-100">
+                            <div class="btn-group w-100 dropdown">
                                 <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
-                                        data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"
-                                        data-bs-auto-close="outside">
+                                        data-toggle="dropdown" aria-expanded="false" aria-haspopup="true"
+                                        data-auto-close="outside">
                                     <span style={{"max-width": "100px"}} class="option-dropdown-title">
                                         {option.selected_name || option.name}
                                     </span>
                                     {option.description &&
-                                        <span data-bs-tooltip="tooltip" title={option.description}
-                                              data-bs-placement="right">&nbsp; <BsInfoSquare size="1.2em"/>
+                                        <span use:tippy={{props: {placement: 'right'}}} title={option.description}>&nbsp;
+                                            <BsInfoSquare size="1.2em"/>
                                     </span>
                                     }
                                 </button>
                                 <ul class="dropdown-menu">
                                     {Array.from(option.option_values_map.values()).map((optionValue: OptionItem) =>
-                                        <li data-bs-tooltip="tooltip"
-                                            title={optionValue.conflictedOptions ? `Конфликт опций: <br/>${optionValue.conflictedOptions.join(",<br/>")}` : optionValue.description}
-                                            data-bs-placement="right" data-bs-html={"true"}
-                                            data-bs-custom-class={`${optionValue.conflictedOptions ? 'warning-tooltip' : 'tooltip'}`}>
+                                        <span use:tippy={{
+                                            props: {
+                                                theme: `${optionValue.conflictedOptions ? 'warning' : ''}`,
+                                                placement: 'right',
+                                                content: optionValue.conflictedOptions ?
+                                                    `${t('optionsConflict')} <br/>${optionValue.conflictedOptions.join(",<br/>")}` :
+                                                    optionValue.description + (optionValue.image ? `<br/><img src="${optionValue.image}"/>` : '')
+                                            }
+                                        }}>
                                             <label class={`dropdown-item ${optionValue.disabled ? 'disabled' : ''}`}
                                                    for={`option-${optionValue.option_value_id}`}>
                                                 <input class="form-check-input m-1" type="checkbox"
                                                        name={`group-${option.option_id}`}
                                                        disabled={optionValue.disabled} checked={optionValue.selected}
-                                                       id={`option-${optionValue.option_value_id}`} onChange={(e) => {
-                                                    onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
-                                                    e.preventDefault();
-                                                }}/>
+                                                       id={`option-${optionValue.option_value_id}`}
+                                                       onChange={(e) => {
+                                                           onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
+                                                           e.preventDefault();
+                                                       }}/>
                                                 {optionValue.name}
                                             </label>
-                                        </li>
+                                        </span>
                                     )}
-                                    {/* <li>
-                                        <hr class="dropdown-divider"/>
-                                    </li>
-                                    <li><a class="dropdown-item link-warning" href="#" onClick={() => resetOption(option.option_id)}>Сбросить</a></li>
-                                    <li><a class="dropdown-item link-danger" href="#" onClick={resetAllOptions}>Сбросить все</a></li>*/}
                                 </ul>
                             </div>
                         </div>
@@ -373,38 +378,21 @@ const view: Component<IProps> = (props: IProps) => {
                                 <input class="form-check-input" checked={detectPalette()} type="checkbox"
                                        role="switch"
                                        id="flexSwitchCheckDefault"
-                                       onChange={(e) => setDetectPalette((e.target as HTMLInputElement).checked)}/>
-                                <label class="form-check-label" for="flexSwitchCheckDefault">Подобрать фон</label>
+                                       onChange={(e) => onDetectPaletteChange((e.target as HTMLInputElement).checked)}/>
+                                <label class="form-check-label" for="flexSwitchCheckDefault">
+                                    {t('detectBackground')}
+                                </label>
                             </div>
                         </div>
                     </div>
                 </Show>
-                {/*<div class="row gx-5 mt-1">
-                        <div class="col">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" checked={detectBestFrame()} type="checkbox"
-                                       role="switch"
-                                       id="flexSwitchCheckDefault"
-                                       onChange={(e) => setDetectBestFrame((e.target as HTMLInputElement).checked)}/>
-                                <label class="form-check-label" for="flexSwitchCheckDefault">Smart кадр</label>
-                            </div>
-                        </div>
-                    </div>*/}
 
                 <Show when={frameType() !== FrameType.NONE}>
                     <div class="row gx-5 mt-1 mb-3">
                         <div class="col">
                             <div class="form-">
-                                <label for="frameColorInput" class="col-form-label">Цвет</label>
+                                <label for="frameColorInput" class="col-form-label">{t('color')}</label>
                                 <div id="toolbar-color-picker"/>
-                                {/* <input type="color" class="form-control " id="frameColorInput" value={frameColor()}
-
-                                           title="Choose your color" onInput={(data) => {
-                                        // @ts-ignore
-                                        const value = data.target.value;
-                                        setFrameColor(value);
-                                        dispatch({type: Commands.CHANGE_FRAME, payload: {color: value}})
-                                    }}/>*/}
                             </div>
                         </div>
                     </div>
@@ -413,7 +401,7 @@ const view: Component<IProps> = (props: IProps) => {
                     <div class="row gx-5 mt-1 mb-3">
                         <div class="col">
                             <div class="form-">
-                                <label for="frameColor" class="form-label">Размер({frameThickness}мм)</label>
+                                <label for="frameColor" class="form-label">{t('size')}: {frameThickness}</label>
                                 <input type="range" class="form-range" onInput={(data) => {
                                     const value = (data.target as HTMLInputElement).value;
                                     setFrameThickness(parseInt(value));
@@ -426,14 +414,16 @@ const view: Component<IProps> = (props: IProps) => {
 
                 <div class="row gx-5 mb-5 mt-1">
                     <div class="col">
-                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>Удалить все
+                        <button type="button" class="btn btn-danger w-100" onClick={deleteAllPhotos}>
+                            {t('toolbar.deleteAll')}
                         </button>
                     </div>
                 </div>
 
                 <div class="row gx-5 mt-1">
                     <div class="col">
-                        <button type="button" class="btn btn-success w-100" onClick={onMakeOrder}>Заказать</button>
+                        <button type="button" class="btn btn-success w-100"
+                                onClick={onMakeOrder}>{t('toolbar.order')}</button>
                     </div>
                 </div>
 

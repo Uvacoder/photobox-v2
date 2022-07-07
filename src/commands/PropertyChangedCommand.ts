@@ -1,5 +1,6 @@
 import Command from "../interface/command/Command";
 import Application from "../Application";
+import {FrameType} from "../constants/FrameType";
 
 export default class PropertyChangedCommand implements Command {
     private app: Application;
@@ -10,11 +11,12 @@ export default class PropertyChangedCommand implements Command {
     }
 
     execute(payload: object): void {
-        if(this.app.parameters.onMakeOrderCallback){
-            this.app.parameters.onMakeOrderCallback({
+        if(this.app.parameters.onPropertiesChangedCallback){
+            this.app.parameters.onPropertiesChangedCallback({
                 options: this.app.parameters.options,
-                extra: 'extra',
-                photos: []
+                selectedOptions: this.app.getViewport().getSelectedOptions(),
+                extra: '',
+                photos: this.app.getViewport().getPhotoProperties()
             });
         }
     }

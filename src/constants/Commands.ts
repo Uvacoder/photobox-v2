@@ -12,4 +12,5 @@ export enum Commands {
     OPEN_UPLOAD_WINDOW,
     PROPERTY_CHANGED,
     MAKE_ORDER,
+    IMAGES_CHANGED
 }

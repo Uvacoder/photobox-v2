@@ -1,11 +1,17 @@
 import type {Component} from 'solid-js';
-import {createEffect, createSignal, onMount, Show} from "solid-js";
+import {createComputed, createEffect, createMemo, createSignal, onCleanup, onMount, Show, untrack} from "solid-js";
 import {h} from "tsx-dom";
 import Props from "../../interface/Props";
 import State from "../../interface/State";
 import {FaCopy, FaSolidBorderStyle, FaSolidSlidersH, FaTrashAlt} from "solid-icons/fa";
-import {BsDashSquareDotted, BsExclamationCircleFill, BsInfoSquare, BsPlusSquareDotted} from "solid-icons/bs";
-import {Tooltip} from "bootstrap";
+import {
+    BsDashSquareDotted,
+    BsExclamationCircleFill,
+    BsExclamationTriangleFill,
+    BsInfoSquare,
+    BsPlusSquareDotted,
+    BsArrowRepeat
+} from "solid-icons/bs";
 import {FrameType} from "../../constants/FrameType";
 import Swal from 'sweetalert2';
 import {t} from "../../i18n/i18n";
@@ -15,29 +21,47 @@ import Pickr from "@simonwep/pickr";
 import config from "../../config/config.json";
 import OptionsHandler from "../../utils/OptionsHandler";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
-import {Commands} from "../../constants/Commands";
 import {Constants} from "../../constants/Constants";
+import {ImageComparator} from "../image-comparator/ImageComparator";
+import {PreselectedOption} from "../../interface/options/PreselectedOption";
+import {useTippy} from 'solid-tippy';
+import 'tippy.js/dist/tippy.css';
+import tippy from "../../utils/tippy";
+
 
 export interface IProps extends Props {
     // name: string,
     src: string,
+    adjustedImageSrc?: string,
     uid: string,
-    setFrameColor: (arg1: string) => void,
-    setFrameWeight: (arg1: number) => void,
-    setFrameType: (arg1: FrameType) => void,
+    onFrameColorChanged: (arg1: string) => void,
+    onFrameWeightChanged: (arg1: number) => void,
+    onFrameTypeChanged: (arg1: FrameType) => void,
     cloneTile: () => void,
     deleteTile: () => void,
     setImageMode: (arg1: ImagePrintMode) => void,
-    setAspectRatio: (w: number, h: number) => void
+    onAspectRatioChanged: (w: number, h: number) => void,
+    selectedOptionsMap: Map<string, OptionItem>,
+    onOptionChanged: (changedOption: PreselectedOption) => void,
+    onQuantityChanged: (quantity: number) => void,
+    onRotate: () => void,
+    onChangeColorEnhanceProperties: (autoEnhance: boolean, saturation: number, brightness: number, contrast: number) => void
+
 }
 
 
 export interface IState extends State {
     setLoaded: (arg: boolean) => any,
     setBadPhotoQuality: (arg: boolean) => any,
+    setOptionsConflict: (arg: boolean) => any,
+    setAtoColorEnhance: (arg: boolean) => any,
     setFrameType: (arg: FrameType) => any,
     setFrameColor: (arg: string) => any,
     setFrameThickness: (arg: number) => any,
+    setAdjustedImageSrc: (arg: string) => any,
+    setSaturation: (arg: number) => any,
+    setBrightness: (arg: number) => any,
+    setContrast: (arg: number) => any,
     setCopies: (arg1: number) => void,
     setOptions: (arg1: Map<string, Option>) => void,
     copies: () => number,
@@ -51,12 +75,12 @@ const view: Component<IProps> = (props: IProps) => {
     let imageContainer: HTMLDivElement | undefined;
     let colorPicker: HTMLDivElement | undefined;
     let frameOptionsDropdown: HTMLDivElement | undefined;
-    let tooltipList: Tooltip[] = [];
-    const selectedOptionsMap = new Map<string, OptionItem>();
 
     // general
     const [loaded, setLoaded] = createSignal(false);
     const [colorPickerInstance, setColorPicker] = createSignal(null);
+    const [hasOptionsConflict, setOptionsConflict] = createSignal(false);
+    const [adjustedImageSrc, setAdjustedImageSrc] = createSignal('');
 
     // frame style
     const [frameThickness, setFrameThickness] = createSignal(config.defaultFrameWeight);
@@ -78,7 +102,7 @@ const view: Component<IProps> = (props: IProps) => {
     // image options
     const [options, setOptions] = createSignal(new Map<string, Option>());
 
-    const state : IState = {
+    const state: IState = {
         setLoaded,
         copies,
         setCopies,
@@ -89,18 +113,28 @@ const view: Component<IProps> = (props: IProps) => {
         frameColor,
         setFrameColor,
         setBadPhotoQuality,
+        setOptionsConflict,
+        setAtoColorEnhance,
+        setSaturation,
+        setBrightness,
+        setContrast,
+        setAdjustedImageSrc,
         setOptions: (arg: Map<string, Option>) => updateOptions.call(this, arg)
     }
-
+    // @ts-ignore
+    //console.log(this);
     onMount(function () {
+
         if (props.onMount) {
             props.onMount(state)
         }
 
-        recreateToolTips();
+        // add usage to prevent removing import by TS compiler
+        tippy
 
-        frameOptionsDropdown?.addEventListener('show.bs.dropdown', function () {
-            console.log('show.bs.dropdown');
+        // workaround for BS4, since it uses jQuery
+        // @ts-ignore
+        $(frameOptionsDropdown).on('shown.bs.dropdown', () => {
             createColorPicker();
         })
         frameOptionsDropdown?.addEventListener('hide.bs.dropdown', function () {
@@ -115,8 +149,9 @@ const view: Component<IProps> = (props: IProps) => {
         })
     })
 
-    createEffect(() => {
+    createMemo(() => {
         setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
+        //props.onChangeColorEnhanceProperties(false, saturation(), brightness(), contrast());
         if (imageContainer) {
             let images = Array.from(imageContainer.getElementsByTagName("img"));
             for (let img of images) {
@@ -125,50 +160,21 @@ const view: Component<IProps> = (props: IProps) => {
         }
     })
 
-    createEffect(() => {
-        badPhotoQuality();
-        imageContainer!.querySelectorAll('[data-bs-tooltip="poor-quality"]').forEach((item) => {
-            if (!item.hasAttribute("data-bs-tooltip-ready")) {
-                item.setAttribute("data-bs-tooltip-ready", "true");
-                new Tooltip(item, {trigger: 'hover'});
-            }
-        })
-    })
-
-    createEffect(() => {
-        //options();
-        //recreateToolTips();
-    })
-
     const updateOptions = (options: Map<string, Option>) => {
-
-
-        setTimeout(() => {
-            setOptions(options);
-            recreateToolTips();
-        }, 500);
+        setOptions(options);
     }
 
-    const recreateToolTips = () => {
-        const tooltipTriggerList = [].slice.call(toolbarContainer!.querySelectorAll('[data-bs-tooltip="tooltip"]'));
-        tooltipList.map(tooltip => tooltip.dispose());
-        tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new Tooltip(tooltipTriggerEl, {trigger: 'hover'});
-        });
-    }
 
-    const onOptionChanged = (event: HTMLInputElement, optionId: string, valueId: string) => {
+    const onOptionChanged = (event: HTMLInputElement, option_id: string, option_value_id: string) => {
 
-        const handledOption = OptionsHandler.handleOptionChange(options(), selectedOptionsMap, event.checked, optionId, valueId);
+        const handledOption = OptionsHandler.handleOptionChange(options(), props.selectedOptionsMap, event.checked, option_id, option_value_id);
         if (!handledOption) {
             return;
         }
         updateView(handledOption.affectedOption, event.checked, handledOption.affectedOptionItem);
         setOptions(handledOption.updatedOptions);
-        recreateToolTips();
-        console.log(handledOption.updatedOptions);
-        console.log(JSON.stringify(handledOption.updatedOptions));
-        // props.optionChanged();
+
+        props.onOptionChanged({option_id, option_value_id, checked: event.checked});
 
     }
 
@@ -181,17 +187,17 @@ const view: Component<IProps> = (props: IProps) => {
         // change image frame
         else if (option.label === Constants.FRAME_OPTION_LABEL) {
             const frame = checked ? affectedOption.label as FrameType : FrameType.NONE;
-            props.setFrameType(frame);
+            props.onFrameTypeChanged(frame);
 
-            if(frame === FrameType.NONE){
+            if (frame === FrameType.NONE) {
                 setFrameThickness(config.defaultFrameWeight);
                 setFrameColor(config.defaultFrameColor);
             }
         }
         // change image size
         else if (option.label === Constants.SIZE_OPTION_LABEL) {
-            if(affectedOption.value){
-                props.setAspectRatio(parseInt(affectedOption.value[0]), parseInt(affectedOption.value[1]))
+            if (affectedOption.value) {
+                props.onAspectRatioChanged(parseInt(affectedOption.value[0]), parseInt(affectedOption.value[1]))
             }
         }
     }
@@ -199,8 +205,6 @@ const view: Component<IProps> = (props: IProps) => {
     // border color picker
     const createColorPicker = () => {
         if (colorPicker && !colorPickerInstance()) {
-            console.log('createColorPicker');
-            console.log(colorPicker);
             const pickr = Pickr.create({
                 el: colorPicker,//'.color-picker',
                 theme: 'nano', // or 'monolith', or 'nano'
@@ -233,12 +237,12 @@ const view: Component<IProps> = (props: IProps) => {
             });
 
             pickr.on('change', (color: any, source: any, instance: any) => {
-                props.setFrameColor(color.toHEXA().toString());
+                props.onFrameColorChanged(color.toHEXA().toString());
             });
 
             pickr.on('changestop', (color: any, source: any, instance: any) => {
                 pickr.applyColor(true);
-                props.setFrameColor(frameColor());
+                props.onFrameColorChanged(frameColor());
             });
             pickr.on('swatchselect', (color: any, source: any, instance: any) => {
                 pickr.applyColor(true);
@@ -246,7 +250,7 @@ const view: Component<IProps> = (props: IProps) => {
 
             // @ts-ignore
             setColorPicker(pickr);
-        }else{
+        } else {
             // @ts-ignore
             colorPickerInstance().setColor(frameColor())
         }
@@ -257,6 +261,7 @@ const view: Component<IProps> = (props: IProps) => {
             return;
         }
         setCopies(copies() - 1);
+        props.onQuantityChanged(copies());
     }
 
     const increaseCopies = () => {
@@ -264,6 +269,7 @@ const view: Component<IProps> = (props: IProps) => {
             return;
         }
         setCopies(copies() + 1);
+        props.onQuantityChanged(copies());
     }
 
     const changeColorEnhanceMode = (e: any) => {
@@ -272,10 +278,15 @@ const view: Component<IProps> = (props: IProps) => {
         setSaturation(1);
         setBrightness(1);
         setContrast(1);
+        props.onChangeColorEnhanceProperties(target.checked, saturation(), brightness(), contrast());
+    }
+
+    const openImageCompareDialog = () => {
+        new ImageComparator(props.src, props.adjustedImageSrc || adjustedImageSrc());
     }
 
     const changeFrameType = () => {
-        props.setFrameColor(frameType());
+        props.onFrameColorChanged(frameType());
 
         if (frameType() === FrameType.NONE && colorPickerInstance()) {
             // @ts-ignore
@@ -285,72 +296,109 @@ const view: Component<IProps> = (props: IProps) => {
     }
 
     const changeFrameColor = () => {
-        props.setFrameColor(frameColor());
+        props.onFrameColorChanged(frameColor());
     }
 
     const changeFrameThickness = () => {
-        props.setFrameWeight(frameThickness());
+        props.onFrameWeightChanged(frameThickness());
     }
 
     const deleteTile = () => {
-
-        Swal.fire({
-            title: t('confirmation.areYouSure'),
-            text: t('confirmation.cantUndone'),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: t('confirmation.yes'),
-            cancelButtonText: t('confirmation.no')
-        }).then((result) => {
-            if (result.isConfirmed) {
-                props.deleteTile();
-            }
-        })
+        props.deleteTile();
     }
+
+    const rotate = () => {
+        props.onRotate()
+    }
+
+    const [conflictOptionIconAnchor, setConflictOptionIconAnchor] = createSignal();
+    const [badQualityIconAnchor, setBadQualityIconAnchor] = createSignal();
+    const [borderOptionsMenuAnchor, setBorderOptionsMenuAnchor] = createSignal();
+    const [colorAdjustmentMenuAnchor, setColorAdjustmentMenuAnchor] = createSignal();
+
+    // @ts-ignore
+    useTippy(conflictOptionIconAnchor, {
+        props: {
+            content: t("tile.optionConflictTooltip")
+        },
+        hidden: true
+    });
+
+    // @ts-ignore
+    useTippy(badQualityIconAnchor, {
+        props: {
+            content: t("tile.badPhotoQuality")
+        },
+        hidden: true
+    });
+
+
+    // @ts-ignore
+    useTippy(borderOptionsMenuAnchor, {
+        props: {
+            content: t("tile.frameParams")
+        },
+        hidden: true
+    });
+
+
+    // @ts-ignore
+    useTippy(colorAdjustmentMenuAnchor, {
+        props: {
+            content: t("tile.colorCorrection")
+        },
+        hidden: true
+    });
 
 
     return (
         <>
+
             <div className={"image-tile-wrapper"}>
+
                 <div className={'image-container'} ref={imageContainer}>
                     <Show when={badPhotoQuality()}>
-                        <BsExclamationCircleFill color="#ea8001" class="quality-warning-icon"
-                                                 data-bs-tooltip="poor-quality"
-                                                 data-bs-placement="top" title={t("tile.badPhotoQuality")} size="30px"/>
+                        <BsExclamationCircleFill ref={setBadQualityIconAnchor} color={config.poorQualityIconColor}
+                                                 class="tile-warning-icon"
+                                                 title={t("tile.badPhotoQuality")} size="30px"/>
                     </Show>
 
-                    <img src={props.src} alt="" class="tile-image"/>
-                    {!loaded() &&
+                    <Show when={hasOptionsConflict()}>
+                        <BsExclamationTriangleFill ref={setConflictOptionIconAnchor}
+                                                   color={config.optionConflictIconColor}
+                                                   class="tile-warning-icon option-conflict-warning"
+                                                   title={t("tile.optionConflictTooltip")}
+                                                   size="30px"/>
+
+                    </Show>
+
+                    <div style="height: 100%;width: 100%;">
+                        <img src={props.src} alt="" class="tile-image"/>
+                    </div>
+                    <Show when={!loaded()}>
                         <div class="spinner-grow text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                    }
-                    {/*   {cats().map((item) => {
-                return <div>{item.name}</div>
-            })}
-            {visible() &&
-                <div>{props.name}</div>
-            }
-            <div onClick={() => setCount(count() + 1)}>Count: {count()}</div>*/}
+                    </Show>
+
                 </div>
 
             </div>
-            <div class="btn-toolbar " role="toolbar" aria-label="Toolbar with button groups" ref={toolbarContainer}>
+            <div class="btn-toolbar " role="toolbar" aria-label="ToolbarImpl with button groups" ref={toolbarContainer}>
 
                 <div class="btn-group btn-group-sm w-100" role="group" aria-label="First group">
 
-                    <button type="button" class="btn btn-outline-light link-primary" data-bs-tooltip="tooltip"
-                            title={t('tile.copy')} data-bs-placement="top" onClick={props.cloneTile}>
+                    <button type="button" class="btn btn-outline-light link-primary"
+                            title={t('tile.copy')} use:tippy
+                            onClick={props.cloneTile}>
                         <FaCopy size="1em"/>
                     </button>
-                    <div class="dropdown" ref={frameOptionsDropdown}>
+                    <div class="dropdown frame-options-dropdown" ref={frameOptionsDropdown}>
                         <Show when={frameType() !== FrameType.NONE}>
-                            <button type="button"
+                            <button type="button" ref={setBorderOptionsMenuAnchor}
                                     class="btn btn-outline-light link-primary dropdown-toggle dropdown-toggle-split"
-                                    data-bs-toggle="dropdown" aria-expanded="false" data-bs-tooltip="tooltip"
-                                    title={t("tile.frameParams")} data-bs-placement="top">
+                                    data-toggle="dropdown" aria-expanded="false"
+                                    tippy-title={t("tile.frameParams")}>
                                 <FaSolidBorderStyle size="1em"/>
                             </button>
                         </Show>
@@ -378,11 +426,11 @@ const view: Component<IProps> = (props: IProps) => {
                                     <div class="col">
                                         <div class="form-">
                                             <label for="frameColor"
-                                                   class="form-label">{t("size")}({frameThickness}мм)</label>
+                                                   class="form-label">{t("size")}({frameThickness})</label>
                                             <input type="range" class="form-range" onInput={(data) => {
                                                 // @ts-ignore
                                                 const value = data.target.value;
-                                                props.setFrameWeight(value);
+                                                props.onFrameWeightChanged(value);
                                             }} min="0" max="15" step="1" value={frameThickness()} id="frameColor"/>
                                         </div>
                                     </div>
@@ -392,133 +440,140 @@ const view: Component<IProps> = (props: IProps) => {
                     </div>
 
 
-                    <button type="button" class="btn btn-outline-light link-primary dropdown-toggle"
-                            data-bs-tooltip="tooltip"
-                            title={t("tile.colorCorrection")} data-bs-placement="top" data-bs-toggle="dropdown"
-                            data-bs-auto-close="outside"
-                            aria-expanded="false">
-                        <span>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-outline-light link-primary dropdown-toggle"
+                                data-toggle="dropdown"
+                                title={t('tile.colorCorrection')}
+                                use:tippy
+                                data-bs-auto-close="outside"
+                                aria-expanded="false">
                             <FaSolidSlidersH size="1em"/>
-                        </span>
-                    </button>
-                    <ul class="dropdown-menu p-1">
-                        <li>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch"
-                                       id={`auto-color-switch-${props.uid}`} onChange={changeColorEnhanceMode}/>
-                                <label class="form-check-label"
-                                       for={`auto-color-switch-${props.uid}`}>{t("tile.autocorrection")}</label>
-                            </div>
-                        </li>
+                        </button>
+                        <ul class="dropdown-menu p-1">
+                            <li>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                           checked={autoColorEnhance()}
+                                           id={`auto-color-switch-${props.uid}`} onChange={changeColorEnhanceMode}/>
+                                    <label class="form-check-label"
+                                           for={`auto-color-switch-${props.uid}`}>{t("tile.autocorrection")}</label>
+                                </div>
+                            </li>
 
-                        <Show when={!autoColorEnhance()}>
-                        <li>
-                            <label for="hue-range" class="form-label m-0">{t("tile.saturation")}</label>
-                            <input type="range" class="form-range" id="hue-range" min={0} max={2} step={0.1}
-                                   value={saturation()} disabled={autoColorEnhance()}
-                                   onInput={(data) => setSaturation((data.target as HTMLInputElement).valueAsNumber)}/>
-                        </li>
-                        <li>
-                            <label for="brightness-range" class="form-label m-0">{t("tile.brightness")}</label>
-                            <input type="range" class="form-range" id="brightness-range" min={0} max={2} step={0.1}
-                                   value={brightness()} disabled={autoColorEnhance()}
-                                   onInput={(data) => setBrightness((data.target as HTMLInputElement).valueAsNumber)}/>
-                        </li>
-                        <li>
-                            <label for="contrast-range" class="form-label m-0">{t("tile.contrast")}</label>
-                            <input type="range" class="form-range" id="contrast-range" min={0} max={2} step={0.1}
-                                   value={contrast()} disabled={autoColorEnhance()}
-                                   onInput={(data) => setContrast((data.target as HTMLInputElement).valueAsNumber)}/>
-                        </li>
-                        </Show>
-                        <Show when={autoColorEnhance()}>
-                            <button type="button" class="btn btn-primary w-100">
-                                Show diff
-                            </button>
-                        </Show>
-                    </ul>
-                    {/*  <button type="button" class="btn btn-outline-light link-primary" data-bs-tooltip="tooltip"
-                            title="Вертикально"
-                            data-bs-placement="bottom">
-                        <BsTabletLandscape size="1em"/>
-                    </button>*/}
-                    <button type="button" class="btn btn-outline-light link-danger" data-bs-tooltip="tooltip"
-                            title={t("delete")}
-                            data-bs-placement="top" onClick={deleteTile}>
+                            <Show when={!autoColorEnhance()}>
+                                <li>
+                                    <label for="hue-range" class="form-label m-0">{t("tile.saturation")}</label>
+                                    <input type="range" class="form-range" id="hue-range" min={0} max={2} step={0.1}
+                                           value={saturation()} disabled={autoColorEnhance()}
+                                           onInput={(data) => setSaturation((data.target as HTMLInputElement).valueAsNumber)}/>
+                                </li>
+                                <li>
+                                    <label for="brightness-range" class="form-label m-0">{t("tile.brightness")}</label>
+                                    <input type="range" class="form-range" id="brightness-range" min={0} max={2}
+                                           step={0.1}
+                                           value={brightness()} disabled={autoColorEnhance()}
+                                           onInput={(data) => setBrightness((data.target as HTMLInputElement).valueAsNumber)}/>
+                                </li>
+                                <li>
+                                    <label for="contrast-range" class="form-label m-0">{t("tile.contrast")}</label>
+                                    <input type="range" class="form-range" id="contrast-range" min={0} max={2}
+                                           step={0.1}
+                                           value={contrast()} disabled={autoColorEnhance()}
+                                           onInput={(data) => setContrast((data.target as HTMLInputElement).valueAsNumber)}/>
+                                </li>
+                            </Show>
+                            <Show when={autoColorEnhance() && loaded()}>
+                                <button type="button" class="btn btn-primary w-100" onClick={openImageCompareDialog}>
+                                    {t('tile.compare')}
+                                </button>
+                            </Show>
+                        </ul>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-light link-primary"
+                            title={t('tile.rotate')}
+                            onClick={rotate}
+                            use:tippy>
+                        <BsArrowRepeat size="1.3em"/>
+                    </button>
+
+                    <button type="button" class="btn btn-outline-light link-danger"
+                            title={t("delete")} use:tippy onClick={deleteTile}>
                         <FaTrashAlt size="1em"/>
                     </button>
                 </div>
                 <div class="input-group input-group-sm w-100">
                     <button class="btn btn-outline-light link-primary" type="button" id="button-addon1"
+                            title={t('decreaseQuantity')} use:tippy
                             onClick={decreaseCopies}><BsDashSquareDotted size={"20px"}/>
                     </button>
-                    <input type="number" step="1" min="1" max="10" value={copies()} name="quantity"
-                           disabled class="quantity-field border-0 text-center form-control bg-white"
-                           data-bs-tooltip="tooltip" title={"Количество"}/>
+                    <div class="quantity-field border-0 text-center form-control bg-white" use:tippy
+                         title={t('quantity')}>{copies()}</div>
                     <button class="btn btn-outline-light link-primary" type="button" id="button-addon1"
+                            title={t('increaseQuantity')} use:tippy
                             onClick={increaseCopies}><BsPlusSquareDotted size={"20px"}/>
                     </button>
                 </div>
                 <div class="w-100">
-                    <div class="accordion">
-                        <div class="accordion-item">
-                            <h4 class="accordion-header">
-                                <button class="accordion-button collapsed p-2" type="button" data-bs-toggle="collapse"
-                                        data-bs-target={`#accordion-${props.uid}`} aria-expanded="false">
-                                    {t("options")}
-                                </button>
-                            </h4>
-                            <div id={`accordion-${props.uid}`} class="accordion-collapse collapse">
-                                <div class="accordion-body p-0">
+
+                    <div onclick={() => setOptionsConflict(false)}>
+                        <div class="dropdown">
+                            <button class="accordion-button collapsed p-2" type="button" data-toggle="dropdown"
+                                    aria-expanded="false" aria-haspopup="true"
+                            >
+                                {t("options")}
+                            </button>
+                            <div class="dropdown-menu w-100 p-0">
+                                <div class=" p-0">
                                     {Array.from(options().values()).map((option: Option) =>
-                                            <div class="row gx-5">
-                                                <div class="col">
-                                                    <div class="btn-group w-100">
-                                                        <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
-                                                                data-bs-toggle="dropdown" aria-expanded="false"
-                                                                aria-haspopup="true"
-                                                                data-bs-auto-close="outside">
-                                    <span style={{"max-width": "100px"}} class="option-dropdown-title">
-                                        {option.selected_name || option.name}
-                                    </span>
-                                                            {option.description &&
-                                                                <span data-bs-tooltip="tooltip" title={option.description}
-                                                                      data-bs-placement="right">&nbsp; <BsInfoSquare
-                                                                    size="1.2em"/>
-                                    </span>
-                                                            }
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            {Array.from(option.option_values_map.values()).map((optionValue: OptionItem) =>
-                                                                <li data-bs-tooltip="tooltip"
-                                                                    title={optionValue.conflictedOptions ? `Конфликт опций: <br/>${optionValue.conflictedOptions.join(",<br/>")}` : optionValue.description}
-                                                                    data-bs-placement="right" data-bs-html={"true"}
-                                                                    data-bs-custom-class={`${optionValue.conflictedOptions ? 'warning-tooltip' : 'tooltip'}`}>
-                                                                    <label
-                                                                        class={`dropdown-item ${optionValue.disabled ? 'disabled' : ''}`}
-                                                                        for={`individual-option-${optionValue.option_value_id}-${props.uid}`}>
-                                                                        <input class="form-check-input m-1" type="checkbox"
-                                                                               name={`group-${option.option_id}`}
-                                                                               disabled={optionValue.disabled}
-                                                                               checked={optionValue.selected}
-                                                                               id={`individual-option-${optionValue.option_value_id}-${props.uid}`}
-                                                                               onChange={(e) => {
-                                                                                   onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
-                                                                                   e.preventDefault();
-                                                                               }}/>
-                                                                        {optionValue.name}
-                                                                    </label>
-                                                                </li>
-                                                            )}
-                                                            {/* <li>
-                                        <hr class="dropdown-divider"/>
-                                    </li>
-                                    <li><a class="dropdown-item link-warning" href="#" onClick={() => resetOption(option.option_id)}>Сбросить</a></li>
-                                    <li><a class="dropdown-item link-danger" href="#" onClick={resetAllOptions}>Сбросить все</a></li>*/}
-                                                        </ul>
-                                                    </div>
+                                        <div class="row gx-5">
+                                            <div class="col">
+                                                <div class="btn-group w-100 dropdown-submenu">
+                                                    <button type="button" class="btn btn-primary dropdown-toggle btn-sm"
+                                                            aria-expanded="false" aria-haspopup="true"
+                                                            data-auto-close="outside">
+                                                            <span style={{"max-width": "100px"}}
+                                                                  class="option-dropdown-title">
+                                                                {option.selected_name || option.name}
+                                                            </span>
+                                                        {option.description &&
+                                                            <span use:tippy={{props: {placement: 'right'}}}
+                                                                  title={option.description}>&nbsp;
+                                                                <BsInfoSquare size="1.2em"/>
+                                                                </span>
+                                                        }
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        {Array.from(option.option_values_map.values()).map((optionValue: OptionItem) =>
+                                                            <li use:tippy={{
+                                                                props: {
+                                                                    theme: `${optionValue.conflictedOptions ? 'warning' : ''}`,
+                                                                    placement: 'right',
+                                                                    content: optionValue.conflictedOptions ?
+                                                                        `${t('optionsConflict')} <br/>${optionValue.conflictedOptions.join(",<br/>")}` :
+                                                                        optionValue.description + (optionValue.image ? `<br/><img src="${optionValue.image}"/>` : '')
+                                                                }
+                                                            }}>
+                                                                <label
+                                                                    class={`dropdown-item ${optionValue.disabled ? 'disabled' : ''}`}
+                                                                    for={`individual-option-${optionValue.option_value_id}-${props.uid}`}>
+                                                                    <input class="form-check-input m-1" type="checkbox"
+                                                                           name={`group-${option.option_id}`}
+                                                                           disabled={optionValue.disabled}
+                                                                           checked={optionValue.selected}
+                                                                           id={`individual-option-${optionValue.option_value_id}-${props.uid}`}
+                                                                           onChange={(e) => {
+                                                                               onOptionChanged(e.target as HTMLInputElement, option.option_id, optionValue.option_value_id);
+                                                                               e.preventDefault();
+                                                                           }}/>
+                                                                    {optionValue.name}
+                                                                </label>
+                                                            </li>
+                                                        )}
+                                                    </ul>
                                                 </div>
                                             </div>
+                                        </div>
                                     )}
 
                                 </div>

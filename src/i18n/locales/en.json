@@ -1,0 +1,40 @@
+{
+  "color": "Color",
+  "size": "Size",
+  "delete": "Delete",
+  "options": "Options",
+  "quantity": "Quantity",
+  "increaseQuantity": "Добавить количество",
+  "decreaseQuantity": "Уменьшить количество",
+  "optionsConflict": "Конфликт опций!",
+  "confirmation": {
+    "areYouSure": "Вы уверены?",
+    "cantUndone": "Действие невозможно будет оменить",
+    "warning": "Предупреждение",
+    "yes": "Да",
+    "no": "Нет",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "ok": "OK"
+  },
+  "tile":{
+    "copy": "Копировать",
+    "colorCorrection": "Цветокоррекция",
+    "autocorrection": "Автокоррекция",
+    "saturation": "Насыщеность",
+    "brightness": "Яркость",
+    "contrast": "Контраст",
+    "compare": "Сравнить",
+    "frameParams": "Параметры рамки",
+    "rotate": "Перевернуть",
+    "badPhotoQuality": "Плохое разрешение. Вы получите фото низкого качества с эффектом размытия",
+    "optionConflictWarning": "Для некоторых фото данную опцию невозможно применить из-за несовместимости с другими выбраннми опциями. Пожалуйста проверьте фотографии, обозначенные восклицательным знаком",
+    "optionConflictTooltip": "Обнаружен конфликт опций, пожалуйста выберите совместимые опции"
+  },
+  "toolbar": {
+    "imageQuantity": "Количество: {{number}}",
+    "totalImages": "Фотографий: {{number}}",
+    "loadedImages": "Загружено изображений {{current}}/{{total}}",
+    "imageLoading": "Загрузка изображений"
+  }
+}

@@ -1,27 +1,27 @@
 import {Option} from "../interface/options/Option";
 import {OptionItem} from "../interface/options/OptionItem";
 import {HandledOptionResult} from "../interface/options/HandledOptionResult";
+import SerializableMap from "./SerializableMap";
+import {PreselectedOption} from "../interface/options/PreselectedOption";
 
 export default class OptionsHandler {
-    private options: Option[];
-    private optionsAsMap: Map<string, Option> | undefined;
-
-    constructor(options: Option[]) {
-        this.options = options;
-    }
 
     /**
      * Transforms array of Option to map, option id -> Option
      * @param options array of options
      */
-    public static toMap(options: Option[]): Map<string, Option> {
-        const result = new Map<string, Option>();
+    public static toMap(options: Option[]): SerializableMap<string, Option> {
+        const result = new SerializableMap<string, Option>();
         options.map(obj => {
 
             if (!obj.option_values_map) {
-                obj.option_values_map = new Map<string, OptionItem>();
+                obj.option_values_map = new SerializableMap<string, OptionItem>();
             }
             obj.option_values.map(v => {
+                v.relation_options_map = new SerializableMap(v.relation_options.map(el => {
+                    return [el.option_id, el.option_value_id];
+                }));
+
                 obj.option_values_map.set(v.option_value_id, v);
             })
             //obj.option_values_map = res;
@@ -44,7 +44,7 @@ export default class OptionsHandler {
                                      optionId: string,
                                      valueId: string): HandledOptionResult | undefined {
 
-        const options = new Map(originalOptions);
+        const options = new SerializableMap(originalOptions);
         // reset all disabled options
         options.forEach(option => {
             option.option_values_map.forEach(value => {
@@ -115,5 +115,18 @@ export default class OptionsHandler {
             affectedOption: option,
             updatedOptions: options
         }
+    }
+
+    public static buildOptionsMapFromSelectedOptionsIds(originalOptions: Map<string, Option>,
+                                                        selectedOptionsMap: Map<string, OptionItem>,
+                                                        selectedOption: PreselectedOption): HandledOptionResult | undefined {
+        // const selectedOptionsMap = new Map<string, OptionItem>();
+        return OptionsHandler.handleOptionChange(
+            originalOptions,
+            selectedOptionsMap,
+            selectedOption.checked,
+            selectedOption.option_id?.toString(),
+            selectedOption.option_value_id?.toString()
+        );
     }
 }

@@ -8,6 +8,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "strict": true,
     "allowJs": true,
     "lib": [
@@ -20,8 +22,5 @@
     "jsxFactory": "h",
     "jsxImportSource": "solid-js"
   },
-  "include": ["src/**/*"],
-  "files": [
-    "./typescript/main.ts"
-  ]
+  "include": ["src/**/*"]
 }

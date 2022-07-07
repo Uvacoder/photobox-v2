@@ -1,6 +1,6 @@
 import Command from "../interface/command/Command";
 import Application from "../Application";
-import {ImageTileImpl} from "../components/image-tile/ImageTileImpl";
+import {ImageTileImpl} from "../components/image-tile/impl/ImageTileImpl";
 
 export default class CloneTileCommand implements Command {
     private app: Application;
