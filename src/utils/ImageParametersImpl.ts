@@ -105,6 +105,9 @@ export default class ImageParametersImpl implements ImageParameters {
     @Serialize({optional: true})
     rotate: number = 0;
 
+    @Serialize()
+    isManuallyRotated: boolean = false;
+
     @Serialize.Custom(objectSerializer)
     size: { width: number; height: number } = {
         width: 9,
@@ -238,7 +241,9 @@ export default class ImageParametersImpl implements ImageParameters {
 
         params.resolution = this.resolution;
 
+        params.quantity = this.quantity;
         params.rotate = this.rotate;
+        params.isManuallyRotated = this.isManuallyRotated;
         params.zoom = this.zoom;
 
         params.selectedOptions = JSON.parse(JSON.stringify(this.selectedOptions));

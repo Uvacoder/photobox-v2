@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><link rel="stylesheet" href="https://fengyuanchen.github.io/cropperjs/css/cropper.css"><link rel="stylesheet" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css"><link rel="stylesheet" href="styles.css"><script defer="defer" src="main.bundle.js?745bace2b21d16871fb7"></script></head><body><div style="height: 0px; background: #0d5470; width: 100%"></div><div id="root"></div><script src="../dist/main.bundle.js" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script><script src="options.js"></script><script>setTimeout(async () => {
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><link rel="stylesheet" href="https://fengyuanchen.github.io/cropperjs/css/cropper.css"><link rel="stylesheet" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css"><link rel="stylesheet" href="styles.css"><script defer="defer" src="main.bundle.js?d9a229ab026b1242ea8d"></script></head><body><div style="height: 0px; background: #0d5470; width: 100%"></div><div id="root"></div><script src="../dist/main.bundle.js" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script><script src="options.js"></script><script>setTimeout(async () => {
         photobox = await new PhotoBox({
             backend: 'http://localhost:5000',
             container: 'root',
@@ -44,7 +44,7 @@
                     },
                     {
                         "option_id": 79,
-                        "option_value_id": "329",
+                        "option_value_id": "330",
                         "name": "Кадрирование",
                         "value": "Кадр целиком",
                         "weight": 0,
@@ -98,6 +98,7 @@
                     "full": `${host}${i.trim()}`,
                     "thumbnail": `${host}${i.trim().replace(".jpg", "-small.jpg")}`
                 },
+                "quantity": 2,
                 params: {
                     "album_photo_id": "59197",
                     "album_id": "2745",
@@ -117,6 +118,7 @@
         photobox.onReady(() => {
             console.log('init');
             photobox.clear();
+            photobox.addImages(images.slice(12,15));
             photobox.addImages([{
                 "colorAdjustment": {
                     "saturation": 1,
@@ -148,141 +150,11 @@
                 "detectAndFillWithGradient": false,
                 "frame": {
                     "color": "#ffffff",
-                    "type": "zebra",
+                    "type": "solid",
                     "thickness": 5
                 },
                 "imagePrintMode": "CROP",
-                "options": [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "20",
-                    "26",
-                    "31",
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "330",
-                    null,
-                    null,
-                    "422",
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "397"
-                ],
-                "selectedOptions": [
-                    {
-                        "option_id": "96",
-                        "option_value_id": "397",
-                        "checked": true
-                    },
-                    {
-                        "option_id": "9",
-                        "option_value_id": "20",
-                        "checked": true
-                    },
-                    {
-                        "option_id": "11",
-                        "option_value_id": "31",
-                        "checked": true
-                    },
-                    {
-                        "option_id": "79",
-                        "option_value_id": "330",
-                        "checked": true
-                    },
-                    {
-                        "option_id": "10",
-                        "option_value_id": "26",
-                        "checked": true
-                    },
-                    {
-                        "option_id": "82",
-                        "option_value_id": "422",
-                        "checked": true
-                    }
-                ],
+
                 "quantity": 3,
                 "rotate": 0,
                 "size": {

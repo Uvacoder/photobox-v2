@@ -151,7 +151,6 @@ const view: Component<IProps> = (props: IProps) => {
 
     createMemo(() => {
         setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
-        //props.onChangeColorEnhanceProperties(false, saturation(), brightness(), contrast());
         if (imageContainer) {
             let images = Array.from(imageContainer.getElementsByTagName("img"));
             for (let img of images) {

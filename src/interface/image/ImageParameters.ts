@@ -27,6 +27,7 @@ export interface ImageParameters {
     quantity: number;
     zoom?: number;
     rotate: number;
+    isManuallyRotated?: boolean;
     detectAndFillWithGradient?: boolean;
     options: SerializableMap<string, Option>;
     autoColorEnhance: boolean;
