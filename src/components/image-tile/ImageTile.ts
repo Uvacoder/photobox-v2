@@ -9,7 +9,7 @@ export interface ImageTile {
    updateParameters(selectedOption: PreselectedOption, parameters?: ImageParameters): string | undefined;
    copyImageParameter(): ImageParameters;
    serializeState(): any;
-   shallowSerialize(): any;
+   serializeImageProperties(): any;
    updateZoom(): void;
    detectColorPalette(fill: boolean): void;
    setFrameWeight(thickness: number): void;

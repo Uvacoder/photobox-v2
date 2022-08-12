@@ -13,9 +13,10 @@ import ImageParametersImpl from "../../../utils/ImageParametersImpl";
 import {measureAsync, measureSync} from "../../../utils/decorators";
 import {ImageTile} from "../../image-tile/ImageTile";
 import {Viewport} from "../Viewport";
-import {showWarningMessage} from "../../../utils/utils";
+import {showInfoToast, showWarningMessage} from "../../../utils/utils";
 import {t} from "../../../i18n/i18n";
 import {PreselectedOption} from "../../../interface/options/PreselectedOption";
+import {FrameType} from "../../../constants/FrameType";
 
 
 export default class ViewportImpl extends BaseView<any, any> implements Viewport, ImageActions {
@@ -39,7 +40,7 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         if (photoBoxParameters.options) {
             this.globalOptions.options = OptionsHandler.toMap(photoBoxParameters.options);
         }
-        if(photoBoxParameters.preselectedOptions){
+        if (photoBoxParameters.preselectedOptions) {
             this.globalOptions.selectedOptions = photoBoxParameters.preselectedOptions;
         }
     }
@@ -50,12 +51,12 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
 
 
         let option = args[1][0] as PreselectedOption;
-        if(!option.checked){
-           // this.globalOptions.selectedOptions.
+        if (!option.checked) {
+            // this.globalOptions.selectedOptions.
             this.globalOptions.selectedOptions = this.globalOptions.selectedOptions.filter(el => {
                 return el.option_id.toString() != option.option_id.toString();
             })
-        }else{
+        } else {
             this.globalOptions.selectedOptions.push(option);
         }
 
@@ -104,7 +105,7 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         let imgContainer = document.createElement('div');
         imgContainer.className = 'image-tile';
 
-        if(parameters.options){
+        if (parameters.options) {
             delete parameters.options;
         }
 
@@ -114,6 +115,7 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         const tileParameters = new ImageParametersImpl().deserialize(parameters as any);
         const imageTile = new ImageTileImpl(tileContainer, tileParameters, this);
         imageTile.registerListeners(this);
+
 
         this.images.push(imageTile);
 
@@ -147,7 +149,8 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         }).indexOf(uid);
         const originalTile = this.images[index];
         const container = this.createHTMLElement('div', 'image-tile');
-        const newTile = new ImageTileImpl(container, originalTile.copyImageParameter(), this);
+        const params = originalTile.copyImageParameter();
+        const newTile = new ImageTileImpl(container, params, this);
         newTile.registerListeners(this);
         this.images.splice(index + 1, 0, newTile);
 
@@ -198,17 +201,22 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
     public serializePhotos(): ImageParameters[] {
         const state: ImageParameters[] = [];
         let optionIsNotSelected = false;
-        if(this.globalOptions.selectedOptions.length < this.photoBoxParameters.options.length){
+        if (this.globalOptions.selectedOptions.length < this.photoBoxParameters.options.length) {
             //showWarningMessage(t('optionIsNotSelectedWarning'))
             //return [];
+        }
+
+        if (!this.images.length) {
+            showWarningMessage(t('noPhotos'))
+            return [];
         }
         this.images.every(image => {
             let result = image.serializeState();
             // if image doesn't have any selected option, use global options if they are presented
-            if(result.selectedOptions.length === 0 && this.globalOptions.selectedOptions.length == this.photoBoxParameters.options.length){
+            if (result.selectedOptions.length === 0 && this.globalOptions.selectedOptions.length == this.photoBoxParameters.options.length) {
                 result.selectedOptions = JSON.parse(JSON.stringify(this.globalOptions.selectedOptions));
             }
-            if(result.selectedOptions.length < this.photoBoxParameters.options.length){
+            if (result.selectedOptions.length < this.photoBoxParameters.options.length) {
                 showWarningMessage(t('optionIsNotSelectedWarning'))
                 optionIsNotSelected = true;
                 return false;
@@ -216,6 +224,9 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
             state.push(result);
             return true;
         });
+        if (!optionIsNotSelected && state.length) {
+            showInfoToast(t('orderIsProcessing'));
+        }
         return optionIsNotSelected ? [] : state;
     }
 
@@ -223,16 +234,16 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         const state: ImageParameters[] = [];
 
         this.images.forEach(image => {
-            state.push(image.shallowSerialize());
+            state.push(image.serializeImageProperties());
         });
         return state;
     }
 
-    public setPreselectedOptions(preselectedOptions: PreselectedOption[]){
+    public setPreselectedOptions(preselectedOptions: PreselectedOption[]) {
         this.globalOptions.selectedOptions = preselectedOptions.filter(o => +o.option_id && +o.option_value_id);
     }
 
-    public getSelectedOptions(): PreselectedOption[]{
+    public getSelectedOptions(): PreselectedOption[] {
         return this.globalOptions.selectedOptions;
     }
 
@@ -272,6 +283,9 @@ export default class ViewportImpl extends BaseView<any, any> implements Viewport
         });
     }
 
+    public setFrameType(type: FrameType) {
+        this.globalOptions.frame.type = type;
+    }
 
     public setBorderWeight(thickness: number) {
         this.globalOptions.frame.thickness = thickness;

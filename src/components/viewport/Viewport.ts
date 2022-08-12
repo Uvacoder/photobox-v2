@@ -4,6 +4,7 @@ import {ImageActions} from "../../interface/image/ImageActions";
 import {ImageParameters} from "../../interface/image/ImageParameters";
 import {ImagePrintMode} from "../../constants/ImagePrintMode";
 import {PreselectedOption} from "../../interface/options/PreselectedOption";
+import {FrameType} from "../../constants/FrameType";
 
 export interface Viewport extends Observer, Observable{
     addImage(parameters: any): void;
@@ -14,6 +15,7 @@ export interface Viewport extends Observer, Observable{
     setAspectRatio(width: number, height: number): void;
     setMode(mode: ImagePrintMode): void;
     fillColor(fill: boolean): void;
+    setFrameType(type: FrameType): void;
     setBorderWeight(thickness: number): void;
     setBorderColor(color: string): void;
     deleteAllImages(): void;

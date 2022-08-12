@@ -40,7 +40,7 @@ export interface ImageParameters {
     params?: object;
 
     serialize(): JsonMap;
-    shallowSerialize(): ImageParameters;
+    serializeImageProperties(): ImageParameters;
     deserialize(input: JsonMap): void;
     clone(): ImageParameters;
     getProperty(name: string): any;

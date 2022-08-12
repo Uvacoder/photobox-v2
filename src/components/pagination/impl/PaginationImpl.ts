@@ -25,6 +25,10 @@ export default class PaginationImpl extends BaseView<IProps, IState> implements 
         switch (event) {
             case Commands.IMAGES_CHANGED:
                 this.updatePaginationData(args[0]);
+                break;
+            case Commands.DELETE_ALL_IMAGES:
+                this.updatePaginationData(0);
+                break;
         }
     }
 

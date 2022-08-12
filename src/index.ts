@@ -1,7 +1,7 @@
 import Application from "./Application";
 import {PhotoBoxParameters} from "./interface/PhotoBoxParameters";
 import {ExportedProperties} from "./interface/ExportedProperties";
-import {Commands} from "./constants/Commands";
+
 import {PreselectedOption} from "./interface/options/PreselectedOption";
 
 export default class PhotoBox {
@@ -93,7 +93,6 @@ export default class PhotoBox {
     public setPreselectedOptions(preselectedOptions: PreselectedOption[]) {
         this.application.setPreselectedOptions(preselectedOptions);
     }
-
 
     /**
      * Clear photo box - delete all photos and reset options

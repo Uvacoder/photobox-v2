@@ -17,7 +17,7 @@ export const showInfoToast = (text: string) => {
     Swal.fire({
         title: text,
         toast: true,
-        position: 'top-end',
+        position: 'top',
         timer: config.infoToastTimout,
         color: 'white',
         background: config.infoToastBackground,

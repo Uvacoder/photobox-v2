@@ -75,7 +75,6 @@ export default class ImageParametersImpl implements ImageParameters {
 
     @Serialize.Custom({
         down: (val: SerializableMap<string, Option>) => {
-            // console.log(JSON.parse(val.toJson()));
             return JSON.stringify(val.toJSON());
         },
 
@@ -110,8 +109,8 @@ export default class ImageParametersImpl implements ImageParameters {
 
     @Serialize.Custom(objectSerializer)
     size: { width: number; height: number } = {
-        width: 9,
-        height: 9
+        width: 100,
+        height: 100
     };
 
     @Serialize.Custom(objectSerializer)
@@ -155,17 +154,10 @@ export default class ImageParametersImpl implements ImageParameters {
     }
 
     public serialize(keepOptions: boolean = false): JsonMap {
-
-        if (!keepOptions) {
-            //this.options = new SerializableMap<string, Option>();
-        }
-
-        let serialized = ((deflate(this)));
-        //delete serialized['options'];
-        return serialized;
+        return deflate(this);
     }
 
-    public shallowSerialize(): ImageParameters {
+    public serializeImageProperties(): ImageParameters {
         const params = new ImageParametersImpl();
         params.quantity = this.quantity;
         if (this.selectedOptions) {
@@ -194,8 +186,6 @@ export default class ImageParametersImpl implements ImageParameters {
         for (let [key, value] of params.options) {
             value.option_values_map = SerializableMap.fromJSON(value.option_values_map);
         }
-        //console.log(params.options.get('82')!.option_values_map);
-
 
         //params.options = this.options;
 
@@ -221,11 +211,7 @@ export default class ImageParametersImpl implements ImageParameters {
         params.autoColorEnhance = this.autoColorEnhance;
         params.autoDetectBestFrame = this.autoDetectBestFrame;
 
-        params.colorAdjustment = {
-            saturation: this.colorAdjustment.saturation,
-            brightness: this.colorAdjustment.brightness,
-            contrast: this.colorAdjustment.contrast,
-        }
+        params.colorAdjustment = JSON.parse(JSON.stringify(this.colorAdjustment))
 
         if (this.cropData) {
             params.cropData = JSON.parse(JSON.stringify(this.cropData));

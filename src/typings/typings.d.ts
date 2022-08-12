@@ -6,6 +6,7 @@ import {AriaAttributes} from "solid-js/jsx-runtime";
 import {DOMAttributes} from "solid-js/types/jsx";
 import {TippyOptions} from 'solid-tippy';
 
+declare module "*.module.css";
 
 interface Map<K, V> {
     toJson(): string;

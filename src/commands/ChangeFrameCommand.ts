@@ -17,6 +17,10 @@ export class ChangeFrameCommand implements Command {
             this.app.getViewport().setBorderColor(payload.color);
         }
 
+        if(payload.frame !== undefined){
+            this.app.getViewport().setFrameType(payload.frame);
+        }
+
     }
 
 

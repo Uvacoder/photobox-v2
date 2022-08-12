@@ -84,12 +84,13 @@ export default class Application {
         this.registerListeners();
 
 
-        changeTheme('default', `themes/bootstrap.${this.parameters.theme || 'default'}.css`, () => {
-            setTimeout(() => {
-                document.getElementById('preloader-full')?.remove()
-            }, 500)
-        })
-
+        if(this.parameters.theme){
+            changeTheme('default', `themes/bootstrap.${this.parameters.theme || 'default'}.css`, () => {
+                setTimeout(() => {
+                    //document.getElementById('preloader-full')?.remove()
+                }, 500)
+            })
+        }
     }
 
     public getViewport() {
@@ -156,9 +157,6 @@ export default class Application {
     }
 
     private registerListeners() {
-        window.addEventListener('click', event => {
-           // console.log(event);
-        })
         window.addEventListener('DOMContentLoaded', event => {
 
             // Toggle the side navigation

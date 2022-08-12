@@ -122,7 +122,6 @@ const view: Component<IProps> = (props: IProps) => {
         setOptions: (arg: Map<string, Option>) => updateOptions.call(this, arg)
     }
     // @ts-ignore
-    //console.log(this);
     onMount(function () {
 
         if (props.onMount) {
@@ -137,27 +136,18 @@ const view: Component<IProps> = (props: IProps) => {
         $(frameOptionsDropdown).on('shown.bs.dropdown', () => {
             createColorPicker();
         })
-        frameOptionsDropdown?.addEventListener('hide.bs.dropdown', function () {
-            /*if(colorPickerInstance()){
-                //createColorPicker();
-                // @ts-ignore
-                colorPickerInstance().destroy();
-                setColorPicker(null);
-                console.log('destroyAndRemove');
-                console.log(colorPicker);
-            }*/
+
+        createEffect(() => {
+            setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
+            if (imageContainer) {
+                let images = Array.from(imageContainer.getElementsByTagName("img"));
+                for (let img of images) {
+                    img.style.filter = colorAdjustment();
+                }
+            }
         })
     })
 
-    createMemo(() => {
-        setColorAdjustment(`saturate(${saturation()}) brightness(${brightness()}) contrast(${contrast()})`);
-        if (imageContainer) {
-            let images = Array.from(imageContainer.getElementsByTagName("img"));
-            for (let img of images) {
-                img.style.filter = colorAdjustment();
-            }
-        }
-    })
 
     const updateOptions = (options: Map<string, Option>) => {
         setOptions(options);
@@ -308,6 +298,25 @@ const view: Component<IProps> = (props: IProps) => {
 
     const rotate = () => {
         props.onRotate()
+    }
+
+    const updateColorSettings = () => {
+        props.onChangeColorEnhanceProperties(false, saturation(), brightness(), contrast());
+    }
+
+    const onSetSaturation = (value: number) => {
+        setSaturation(value);
+        updateColorSettings()
+    }
+
+    const onSetBrightness = (value: number) => {
+        setBrightness(value);
+        updateColorSettings()
+    }
+
+    const onSetContrast = (value: number) => {
+        setContrast(value);
+        updateColorSettings()
     }
 
     const [conflictOptionIconAnchor, setConflictOptionIconAnchor] = createSignal();
@@ -464,21 +473,21 @@ const view: Component<IProps> = (props: IProps) => {
                                     <label for="hue-range" class="form-label m-0">{t("tile.saturation")}</label>
                                     <input type="range" class="form-range" id="hue-range" min={0} max={2} step={0.1}
                                            value={saturation()} disabled={autoColorEnhance()}
-                                           onInput={(data) => setSaturation((data.target as HTMLInputElement).valueAsNumber)}/>
+                                           onInput={(data) => onSetSaturation((data.target as HTMLInputElement).valueAsNumber)}/>
                                 </li>
                                 <li>
                                     <label for="brightness-range" class="form-label m-0">{t("tile.brightness")}</label>
                                     <input type="range" class="form-range" id="brightness-range" min={0} max={2}
                                            step={0.1}
                                            value={brightness()} disabled={autoColorEnhance()}
-                                           onInput={(data) => setBrightness((data.target as HTMLInputElement).valueAsNumber)}/>
+                                           onInput={(data) => onSetBrightness((data.target as HTMLInputElement).valueAsNumber)}/>
                                 </li>
                                 <li>
                                     <label for="contrast-range" class="form-label m-0">{t("tile.contrast")}</label>
                                     <input type="range" class="form-range" id="contrast-range" min={0} max={2}
                                            step={0.1}
                                            value={contrast()} disabled={autoColorEnhance()}
-                                           onInput={(data) => setContrast((data.target as HTMLInputElement).valueAsNumber)}/>
+                                           onInput={(data) => onSetContrast((data.target as HTMLInputElement).valueAsNumber)}/>
                                 </li>
                             </Show>
                             <Show when={autoColorEnhance() && loaded()}>
@@ -547,7 +556,7 @@ const view: Component<IProps> = (props: IProps) => {
                                                             <li use:tippy={{
                                                                 props: {
                                                                     theme: `${optionValue.conflictedOptions ? 'warning' : ''}`,
-                                                                    placement: 'right',
+                                                                    placement: window.outerWidth > 768 ? 'right' : 'top',
                                                                     content: optionValue.conflictedOptions ?
                                                                         `${t('optionsConflict')} <br/>${optionValue.conflictedOptions.join(",<br/>")}` :
                                                                         optionValue.description + (optionValue.image ? `<br/><img src="${optionValue.image}"/>` : '')
