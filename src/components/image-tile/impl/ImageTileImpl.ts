@@ -717,10 +717,10 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
             const imageHeight = image.naturalHeight;
             const border = this.imageParameters.frame.type == FrameType.NONE ? 0 : this.imageParameters.frame.thickness;
 
-            cropDataForRender.width = parseFloat(((cropData!.width) / imageWidth * 100).toFixed(3));
-            cropDataForRender.height = parseFloat(((cropData!.height) / imageHeight * 100).toFixed(3));
-            cropDataForRender.x = parseFloat(((cropData!.x) / imageWidth * 100).toFixed(3));
-            cropDataForRender.y = parseFloat(((cropData!.y) / imageHeight * 100).toFixed(3));
+            cropDataForRender.width = parseFloat((cropData!.width / imageWidth * 100).toFixed(3));
+            cropDataForRender.height = parseFloat((cropData!.height / imageHeight * 100).toFixed(3));
+            cropDataForRender.x = parseFloat((cropData!.x / imageWidth * 100).toFixed(3));
+            cropDataForRender.y = parseFloat((cropData!.y / imageHeight * 100).toFixed(3));
             this.imageParameters.cropDataForRender = cropDataForRender;
         }
 
