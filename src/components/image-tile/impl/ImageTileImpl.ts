@@ -246,6 +246,7 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
 
     @delay<ImageTileImpl>(100)
     async renderTile() {
+        this.adjustTileScale();
         await this.setMode(this.imageParameters.imagePrintMode);
         this.setFrameType(this.imageParameters.frame.type);
         this.setFrameWeight(this.imageParameters.frame.thickness);
@@ -266,7 +267,7 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
 
         this.viewState?.setCopies(this.imageParameters.quantity);
 
-        this.adjustTileScale();
+
         this.scale = ViewportImpl.zoomFactor;
 
         // render options list
