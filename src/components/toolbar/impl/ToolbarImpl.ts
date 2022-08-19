@@ -108,20 +108,16 @@ export default class ToolbarImpl extends BaseView<any, any> implements Toolbar {
         }
     }
 
-    public updateImageUploadProgress(loaded: number, total: number) {
-        this.viewState?.setImageUploadProgress([loaded, total]);
-        if(!this.imagesLoading){
-            showInfoToast(t('uploadingStarted'));
-            this.imagesLoading = true;
+    public updateImageUploadProgress(progress: number) {
+        this.viewState?.setImageUploadProgress(progress);
+    }
+
+    public setImageProcessingStatus(text: string | null) {
+        this.viewState?.setImageProcessingProgressText(text ? text : '');
+        if(text){
+            showInfoToast(t(`toolbar.${text}`));
         }
-        if ((total && loaded >= total) || (loaded >= 100 && !total)) {
-            // set timeout to keep progress bar visible for 2 seconds after uploading finished
-            // when uploading finished, it requires some time to process the image before add it to photobox
-            setTimeout(() => {
-                this.viewState?.setImageUploadProgress([0, 0]);
-                this.imagesLoading = false;
-            }, 2000)
-        }
+
     }
 
     public resetOptions() {

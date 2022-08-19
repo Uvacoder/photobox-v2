@@ -218,7 +218,7 @@
             }, 3000)
         });
 
-        //photobox.updateImageUploadProgress(c, 50);
+        //photobox.setImageUploadProgress(c, 50);
         let c = 0;
        /* let interval = setInterval(() => {
             photobox.addImages([
@@ -232,7 +232,7 @@
                 }
             ]);
             c++;
-            photobox.updateImageUploadProgress(c, 50);
+            photobox.setImageUploadProgress(c, 50);
             if(c > 10){
                 clearInterval(interval);
             }
@@ -277,10 +277,15 @@
             localStorage.removeItem("images");
         });
 
-        /*let progress = 1;
-        setInterval(() => {
-            photobox.updateImageUploadProgress(++progress, 60);
-        }, 500)*/
+        let progress = 1;
+        setTimeout(() => {
+            photobox.setImageUploadProgress(100);
+           // photobox.setImageProcessingStatus('imageUnpacking');
+        }, 500)
+
+        setTimeout(() => {
+            photobox.setImageProcessingStatus('');
+        }, 5000)
 
         photobox.onMakeOrder((data) => {
             //photobox.clear()

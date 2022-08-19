@@ -71,11 +71,29 @@ export default class PhotoBox {
 
     /**
      * Update uploading photos progress bar
-     * @param loaded number of loaded photos
-     * @param total total photos
+     * @param progress progress in percent
      */
-    public updateImageUploadProgress(loaded: number, total: number) {
-        this.application.updateImageUploadProgress(loaded, total);
+    public setImageUploadProgress(progress: number) {
+        this.application.updateImageUploadProgress(progress);
+    }
+
+
+    /**
+     * Show progress bar and notify about some processing work
+     *
+     * @param key translation key
+     */
+    public setImageProcessingStatus(key: string | null){
+        this.application.setImageProcessingStatus(key);
+    }
+
+    /**
+     * SHow success notification using translation key and translation file
+     *
+     * @param key translation key
+     */
+    public showNotification(key: string){
+        this.application.showNotification(key);
     }
 
     /**

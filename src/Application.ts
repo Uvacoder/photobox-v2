@@ -36,6 +36,8 @@ import {Toolbar} from "./components/toolbar/Toolbar";
 import {Viewport} from "./components/viewport/Viewport";
 import {PreselectedOption} from "./interface/options/PreselectedOption";
 import {JsonArray} from "serialazy/lib/dist/json_type";
+import {t} from "./i18n/i18n";
+import {showInfoToast} from "./utils/utils";
 
 export default class Application {
     private container = document.getElementById('root');
@@ -97,8 +99,17 @@ export default class Application {
         return this.viewport;
     }
 
-    public updateImageUploadProgress(loaded: number, total: number){
-        this.toolbar.updateImageUploadProgress(loaded, total);
+    public updateImageUploadProgress(progress: number){
+        this.toolbar.updateImageUploadProgress(progress);
+    }
+
+
+    public setImageProcessingStatus(text: string | null){
+        this.toolbar.setImageProcessingStatus(text);
+    }
+
+    public showNotification(key: string){
+        showInfoToast(t(key));
     }
 
     private addElementTo(element: BaseView, container?: HTMLElement | null) {

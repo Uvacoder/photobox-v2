@@ -29,7 +29,8 @@ export interface IProps extends Props {
 export interface IState extends State {
     setImagesNumber: (arg1: number) => void;
     setOptions: (options: Map<string, Option>) => void;
-    setImageUploadProgress: (arg: number[]) => void;
+    setImageUploadProgress: (arg: number) => void;
+    setImageProcessingProgressText: (text: string) => void;
     setFrameType: (arg: FrameType) => void;
     setImageMode: (arg: ImagePrintMode) => void;
     resetOptions: () => void;
@@ -46,7 +47,8 @@ const view: Component<IProps> = (props: IProps) => {
     const [frameType, setFrameType] = createSignal(FrameType.NONE);
     const [imagesNumber, setImagesNumber] = createSignal(0);
     const [options, setOptions] = createSignal(new Map<string, Option>());
-    const [imageUploadProgress, setImageUploadProgress] = createSignal([0, 0]);
+    const [imageUploadProgress, setImageUploadProgress] = createSignal(0);
+    const [imageProcessingProgressText, setImageProcessingProgressText] = createSignal('');
 
     const state: IState = {
         setImagesNumber,
@@ -55,7 +57,8 @@ const view: Component<IProps> = (props: IProps) => {
         setFrameType,
         setImageMode,
         resetOptions: () => resetAllOptions.call(this),
-        setDetectPalette
+        setDetectPalette,
+        setImageProcessingProgressText
     }
 
 
@@ -222,7 +225,7 @@ const view: Component<IProps> = (props: IProps) => {
 
     }
 
-    const onDetectPaletteChange= (value: boolean) => {
+    const onDetectPaletteChange = (value: boolean) => {
         setDetectPalette(value);
         dispatch({type: Commands.DETECT_PALETTE, payload: value});
     }
@@ -243,7 +246,6 @@ const view: Component<IProps> = (props: IProps) => {
             }
         })
     }
-
 
 
     return (
@@ -284,42 +286,41 @@ const view: Component<IProps> = (props: IProps) => {
                         {t('toolbar.totalImages', {number: imagesNumber()})}
                     </p>
                 </div>
-                {/*Show progress bar if current and total number of images was set*/}
-                <Show when={imageUploadProgress()[1]}>
+                <Show when={imageProcessingProgressText()}>
                     <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" style={{cursor: 'pointer'}}
                          onClick={openUploadWindow}
-                         title={t('toolbar.imageLoading')}>
-                        <p class="mb-0">{t('toolbar.imageLoading')}</p>
+                         title={t(`toolbar.${imageProcessingProgressText()}`)}>
+                        <p class="mb-0">{t(`toolbar.${imageProcessingProgressText()}`)}</p>
                         <div className="progress" style="height: 15px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                 aria-valuenow={imageUploadProgress()[0]}
+                                 aria-valuenow="100"
                                  aria-valuemin="0"
-                                 aria-valuemax={imageUploadProgress()[1]}
+                                 aria-valuemax="100"
                                  style={{
-                                     width: `${100 / imageUploadProgress()[1] * imageUploadProgress()[0]}%`,
-                                     "font-size": "13px"
+                                     'width': '100%',
+                                     'font-size': '13px'
                                  }}>
-                                {Math.ceil(100 / imageUploadProgress()[1] * imageUploadProgress()[0])}%
                             </div>
                         </div>
                     </div>
                 </Show>
+
                 {/*Show progress bar if the value was set in percent*/}
-                <Show when={imageUploadProgress()[0] && !imageUploadProgress()[1]}>
+                <Show when={imageUploadProgress()}>
                     <div class="row gx-1 mr-0 ml-0 mt-1 mb- 2" style={{cursor: 'pointer'}}
                          onClick={openUploadWindow}
                          title={t('toolbar.imageLoading')}>
                         <p class="mb-0">{t('toolbar.imageLoading')}</p>
                         <div className="progress" style="height: 15px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                 aria-valuenow={imageUploadProgress()[0]}
+                                 aria-valuenow={imageUploadProgress()}
                                  aria-valuemin="0"
-                                 aria-valuemax={imageUploadProgress()[1]}
+                                 aria-valuemax={imageUploadProgress()}
                                  style={{
-                                     width: `${imageUploadProgress()[0]}%`,
+                                     width: `${imageUploadProgress()}%`,
                                      "font-size": "13px"
                                  }}>
-                                {imageUploadProgress()[0]}%
+                                {imageUploadProgress()}%
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><link rel="stylesheet" href="https://fengyuanchen.github.io/cropperjs/css/cropper.css"><link rel="stylesheet" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css"><link rel="stylesheet" href="styles.css"><script defer="defer" src="main.bundle.js?712a4218843550d508b8"></script></head><body><div id="root"></div><script src="../dist/main.bundle.js" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script><script src="options.js"></script><script>setTimeout(async () => {
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><link rel="stylesheet" href="https://fengyuanchen.github.io/cropperjs/css/cropper.css"><link rel="stylesheet" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css"><link rel="stylesheet" href="styles.css"><script defer="defer" src="main.bundle.js?ac4d68946d2a30f2d98d"></script></head><body><div id="root"></div><script src="../dist/main.bundle.js" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script><script src="options.js"></script><script>setTimeout(async () => {
         photobox = await new PhotoBox({
             backend: 'http://localhost:5000',
             container: 'root',
@@ -198,7 +198,7 @@
             }, 3000)
         });
 
-        //photobox.updateImageUploadProgress(c, 50);
+        //photobox.setImageUploadProgress(c, 50);
         let c = 0;
        /* let interval = setInterval(() => {
             photobox.addImages([
@@ -212,7 +212,7 @@
                 }
             ]);
             c++;
-            photobox.updateImageUploadProgress(c, 50);
+            photobox.setImageUploadProgress(c, 50);
             if(c > 10){
                 clearInterval(interval);
             }
@@ -257,10 +257,15 @@
             localStorage.removeItem("images");
         });
 
-        /*let progress = 1;
-        setInterval(() => {
-            photobox.updateImageUploadProgress(++progress, 60);
-        }, 500)*/
+        let progress = 1;
+        setTimeout(() => {
+            photobox.setImageUploadProgress(100);
+           // photobox.setImageProcessingStatus('imageUnpacking');
+        }, 500)
+
+        setTimeout(() => {
+            photobox.setImageProcessingStatus('');
+        }, 5000)
 
         photobox.onMakeOrder((data) => {
             //photobox.clear()

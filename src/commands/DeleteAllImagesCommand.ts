@@ -11,7 +11,7 @@ export default class DeleteAllImagesCommand implements Command {
     }
 
     execute(uuid: string): void {
-        this.app.getViewport().deleteAllImages();
+        this.app.clearPhotobox();
         this.app.parameters.onDeleteAllPhotosCallback();
     }
 

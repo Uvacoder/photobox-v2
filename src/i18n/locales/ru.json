@@ -44,6 +44,8 @@
     "loadedImages": "Загружено изображений {{current}}/{{total}}",
     "imageLoading": "Загрузка",
     "deleteAll": "Удалить все",
-    "order": "Заказать"
+    "order": "Заказать",
+    "imageUnpacking": "Распаковка архива",
+    "imagesPreparing": "Подготовка изображений"
   }
 }

@@ -44,6 +44,8 @@
     "loadedImages": "Завантажено зображень {{current}}/{{total}}",
     "imageLoading": "Завантаження",
     "deleteAll": "Видалити всі",
-    "order": "Замовити"
+    "order": "Замовити",
+    "imageUnpacking": "Розпакування архіву",
+    "imagesPreparing": "Підготовка зображень"
   }
 }

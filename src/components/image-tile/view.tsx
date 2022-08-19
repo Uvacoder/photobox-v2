@@ -254,7 +254,7 @@ const view: Component<IProps> = (props: IProps) => {
     }
 
     const increaseCopies = () => {
-        if (copies() == 10) {
+        if (copies() == 100) {
             return;
         }
         setCopies(copies() + 1);
