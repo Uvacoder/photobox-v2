@@ -254,11 +254,33 @@ const view: Component<IProps> = (props: IProps) => {
     }
 
     const increaseCopies = () => {
-        if (copies() == 100) {
+        if (copies() >= 10000) {
             return;
         }
         setCopies(copies() + 1);
         props.onQuantityChanged(copies());
+    }
+
+    const updateCopies = (value: string) => {
+        if (!value) {
+            value = '1';
+        }
+        if (parseInt(value) >= 10000) {
+            return;
+        }
+        setCopies(parseInt(value));
+        props.onQuantityChanged(copies());
+    }
+
+    const validateCopies = (val: any) => {
+        const theEvent = val || window.event;
+        let key = theEvent.keyCode || theEvent.which;
+        key = String.fromCharCode(key);
+        const regex = /[0-9]|\./;
+        if( !regex.test(key) ) {
+            theEvent.returnValue = false;
+            if(theEvent.preventDefault) theEvent.preventDefault();
+        }
     }
 
     const changeColorEnhanceMode = (e: any) => {
@@ -515,8 +537,11 @@ const view: Component<IProps> = (props: IProps) => {
                             title={t('decreaseQuantity')} use:tippy
                             onClick={decreaseCopies}><BsDashSquareDotted size={"20px"}/>
                     </button>
-                    <div class="quantity-field border-0 text-center form-control bg-white" use:tippy
-                         title={t('quantity')}>{copies()}</div>
+                    <input class="quantity-field border-0 text-center form-control bg-white" use:tippy
+                           title={t('quantity')} value={copies()}
+                           onInput={e => updateCopies((e.target as HTMLInputElement).value)}
+                           onKeyPress={validateCopies}
+                    />
                     <button class="btn btn-outline-light link-primary" type="button" id="button-addon1"
                             title={t('increaseQuantity')} use:tippy
                             onClick={increaseCopies}><BsPlusSquareDotted size={"20px"}/>

@@ -3,7 +3,6 @@ import '@simonwep/pickr/dist/themes/nano.min.css';
 import {h} from "tsx-dom";
 import Props from "../../interface/Props";
 import State from "../../interface/State";
-import Sticky from "sticky-js";
 import {FaSolidBars, FaSolidWindowClose} from "solid-icons/fa";
 import {t} from "../../i18n/i18n";
 import Application from "../../Application";
@@ -44,20 +43,7 @@ const view = (props: IProps) => {
                         sidebar.classList.remove('stick');
                     }
                 });
-           /* new hcSticky('#sidebar-wrapper', {
-                onStart: () => {
-                    console.log('onStart');
-                },
-                onStop: () => {
-                    console.log('onStop');
-                }
-            });*/
         }
-
-        //}
-        /* var Sticky = new hcSticky('#sidebar-wrapper', {
-             // options here
-         });*/
 
     })
 

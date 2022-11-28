@@ -17,7 +17,6 @@ import Pickr from "@simonwep/pickr";
 import config from "../../config/config.json";
 import tippy from "../../utils/tippy";
 import {Constants} from "../../constants/Constants";
-import Sticky from "sticky-js";
 import {h} from "tsx-dom";
 
 export interface IProps extends Props {

@@ -57,6 +57,8 @@ export default class Application {
         }
         this.parameters = parameters;
         this.options = parameters.options;
+        // @ts-ignore
+        console.log(`%c Photobox version: ${__VERSION__}, build date: ${__BUILD_DATE__}`, 'background: #222; color: #bada55');
     }
 
     private readonly sidebarContainer = "sidebar-container";

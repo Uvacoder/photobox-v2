@@ -127,7 +127,42 @@
         photobox.onReady(() => {
             console.log('init');
             photobox.clear();
-            photobox.addImages(images);
+            photobox.addImages([
+                {
+                    "autoColorEnhance": false,
+                    "autoDetectBestFrame": true,
+                    "canvasData": null,
+                    "colorAdjustment": {
+                        "brightness": 1,
+                        "contrast": 1,
+                        "saturation": 1
+                    },
+
+                    "dest": {
+                        "1": "image/order/render/7148-46d77527a006/7148-79514171626/matt/10x15//1/"
+                    },
+                    "detectAndFillWithGradient": true,
+                    "frame": {
+                        "color": "#ffffff",
+                        "thickness": 5,
+                        "type": "none"
+                    },
+                    "imagePrintMode": "CROP",
+                    "isManuallyRotated": false,
+                    "quantity": 1,
+                    "resolution": "1536x2048",
+                    "rotate": 0,
+
+                    "src": {
+                        "adjusted": null,
+                        "full": "https://xn--80aj0aafqej6a4c.xn--80asehdb/image/order/7148-032d1a9eb128/7148-79514171626/matt/10x15//1//matt_10x15804c5571abfd55f29fb42adf9bc71ac8.jpg",
+                        "thumbnail": "https://pechat55.ru/image/cache/customer/guest/cd7a127925d1415abd0211d43c11610f/804c5571abfd55f29fb42adf9bc71ac8-224x300-width.jpg"
+                    },
+                    "targetPath": "image/order/render/7148-46d77527a006/7148-79514171626/matt/10x15//1/",
+                    "url": "https://xn--80aj0aafqej6a4c.xn--80asehdb/image/order/7148-032d1a9eb128/7148-79514171626/matt/10x15//1//matt_10x15804c5571abfd55f29fb42adf9bc71ac8.jpg",
+                    "zoom": 0
+                }
+            ]);
 
         });
 

@@ -2,6 +2,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require("path");
+const webpack = require("webpack");
 
 
 module.exports = (env) => {
@@ -88,6 +89,10 @@ module.exports = (env) => {
             new MiniCssExtractPlugin({
                 filename: '[name].css',
             }),
+            new webpack.DefinePlugin({
+                __VERSION__: JSON.stringify("2.1.10"),
+                __BUILD_DATE__: JSON.stringify(new Date().toJSON().slice(0,10))
+            })
         ]
     }
 }

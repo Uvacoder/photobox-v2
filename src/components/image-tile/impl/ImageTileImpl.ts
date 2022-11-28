@@ -529,6 +529,7 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
             this.cropper?.setAspectRatio(this.getAspectRatio());
             // @ts-ignore
             this.cropper?.cropper.style.display = "block";
+            this.cropper?.enable();
             this.addClass(this.getImage(), "cropper-hidden");
 
             if (this.imageParameters.cropData) {
@@ -601,6 +602,7 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
         // hide cropper
         // @ts-ignore
         this.cropper?.cropper.style.display = "none";
+        this.cropper?.disable();
         const imageWidth = this.getImage().naturalWidth;
         const imageHeight = this.getImage().naturalHeight;
         const container = this.getImageContainer();
