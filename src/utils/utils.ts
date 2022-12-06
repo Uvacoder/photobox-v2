@@ -23,7 +23,19 @@ export const showInfoToast = (text: string) => {
         background: config.infoToastBackground,
         timerProgressBar: true,
         showConfirmButton: false,
-    }).then((result) => {})
+    }).then((result) => {
+    })
+}
+
+export const showConfirmationMessage = (text: string, confirmText: string, cancelText: string) => {
+    return Swal.fire({
+        text: text,
+        icon: 'info',
+        showConfirmButton: true,
+        confirmButtonText: confirmText,
+        showCancelButton: true,
+        cancelButtonText: cancelText
+    });
 }
 
 export const showWarningMessage = (text: string) => {
@@ -31,5 +43,6 @@ export const showWarningMessage = (text: string) => {
         text: text,
         icon: 'warning',
         showConfirmButton: true,
-    }).then((result) => {})
+    }).then((result) => {
+    })
 }

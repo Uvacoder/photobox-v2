@@ -24,7 +24,7 @@ export default function tippy<T extends Element>(
             options.hidden = true;
             options.props!.allowHTML = true;
             options.props!.content = options.props?.content || title as string;
-            options.props!.followCursor = false;
+            //options.props!.followCursor = false;
             //options.props!.plugins = [followCursor];
         }
         const instance = makeTippy(target, untrack(() => options?.props));

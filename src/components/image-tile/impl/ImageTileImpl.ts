@@ -774,6 +774,7 @@ export class ImageTileImpl extends BaseView<IProps, IState> implements ImageTile
             this.imageParameters.cropData = result.topCrop as Cropper.Data;
 
             this.viewState?.setLoaded(true);
+            console.log('SMart crop:' + result);
         });
     }
 

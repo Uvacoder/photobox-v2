@@ -13,7 +13,7 @@ import ImageParametersImpl from "../../../utils/ImageParametersImpl";
 import {measureAsync, measureSync} from "../../../utils/decorators";
 import {ImageTile} from "../../image-tile/ImageTile";
 import {Viewport} from "../Viewport";
-import {showInfoToast, showWarningMessage} from "../../../utils/utils";
+import {showConfirmationMessage, showInfoToast, showWarningMessage} from "../../../utils/utils";
 import {t} from "../../../i18n/i18n";
 import {PreselectedOption} from "../../../interface/options/PreselectedOption";
 import {FrameType} from "../../../constants/FrameType";
